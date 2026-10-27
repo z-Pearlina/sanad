@@ -24,7 +24,11 @@ ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_DB = Path(os.environ.get("LOCALAPPDATA", Path.home())) / "isnady" / "isnady.db"
 DEFAULT_TAQRIB = ROOT / "data-src/isnady-data/rijal/sunni/taqrib_al_tahdhib_ibn_hajar_al_asqalani.md"
 BOOK_TITLES = ROOT / "scripts/bukhari_books_ar.json"
-SAHABA_HOMES = ROOT / "scripts/sahaba_homes.json"  # used only once reviewed
+SAHABA_HOMES = ROOT / "scripts/sahaba_homes.json"  # reviewed homes of Companions without a city nisba
+
+# Featured hadiths (reviewed): every narrator identified, confidence >= 0.8, three cities or more,
+# short and well known. Hadith 1 is kept first although its chain has two cities only.
+FEATURED = ["1", "3461", "6724", "3636", "5363", "6516", "1610", "2075", "1933", "3559", "5448", "1913", "2875"]
 
 BUKHARI_TAQRIB = "5727"  # al-Bukhari himself, appended as the last link of every chain
 
@@ -226,7 +230,8 @@ def main() -> None:
     q = lambda sql, *a: db.execute(sql, a).fetchall()  # noqa: E731
     taqrib = read_taqrib(args.taqrib)
     books_ar = json.loads(BOOK_TITLES.read_text(encoding="utf-8"))["titles"]
-    sahaba_homes = json.loads(SAHABA_HOMES.read_text(encoding="utf-8")) if SAHABA_HOMES.exists() else {}
+    sahaba_homes = {k: v[0] for k, v in json.loads(SAHABA_HOMES.read_text(encoding="utf-8")).items()
+                    if not k.startswith("_")}
 
     # ---- persons
     verdict = {pid: (phrase, rank) for pid, phrase, rank in q(
@@ -365,6 +370,18 @@ def main() -> None:
     write(out / "spread.json", spread)
     write(out / "cities.json", {k: {"ar": a, "lat": la, "lon": lo, "kind": kind} for k, (a, la, lo, kind) in CITIES.items()})
     write(out / "sections.json", sections)
+
+    # ---- featured hadiths
+    featured = []
+    for n in FEATURED:
+        h = json.loads((out / "hadith" / f"{n}.json").read_text(encoding="utf-8"))
+        chain = h["isnads"][0]
+        companion = chain["links"][-1]
+        featured.append({"n": n, "matn": h["ar"][chain["end"]:].strip(" ،,:"),
+                         "companion": companion["raw"], "companionId": companion["id"],
+                         "cities": list(dict.fromkeys(ln["city"] for ln in reversed(chain["links"]) if ln.get("city"))),
+                         "length": len(chain["links"])})
+    write(out / "featured.json", featured)
 
     # ---- report
     located = sum(s["located"] for s in spread)

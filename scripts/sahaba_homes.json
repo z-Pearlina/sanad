@@ -1,5 +1,5 @@
 {
-  "_note": "Proposed homes for the Companions most frequent in al-Bukhari's chains whose Taqrib entry has no city nisba. Not used until reviewed and saved as sahaba_homes.json (taqrib number -> city key).",
+  "_note": "Homes (reviewed 27/10/2026) for the Companions most frequent in al-Bukhari's chains whose Taqrib entry has no city nisba. taqrib number -> [city key, reason].",
   "8426": ["madina", "أبو هريرة: سكن المدينة ومات بها"],
   "8633": ["madina", "عائشة: المدينة"],
   "3490": ["madina", "ابن عمر: المدينة (مات بمكة)"],

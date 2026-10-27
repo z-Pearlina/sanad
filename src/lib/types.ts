@@ -1,0 +1,51 @@
+// Shapes of the JSON files written by scripts/build_data.py into public/data.
+
+export type Group = "sahabi" | "thiqa" | "saduq" | "maqbul" | "daif" | "see";
+
+export type Link = {
+  raw: string; // the name as written in the text
+  tr: string | null; // transmission word this narrator was reported with ("haddathana", "'an", ...)
+  conf: number | null; // isnady match confidence
+  id: string | null; // Taqrib number; null when the name was not identified
+  name?: string;
+  death?: number | null;
+  tabaqa?: number | null;
+  rank?: number | null;
+  group?: Group;
+  phrase?: string | null; // Ibn Hajar's words, as extracted
+  city?: string | null;
+};
+
+// [text, kind, narrator id]: kind "name" | "tr" (transmission word) | "t" (other)
+export type Segment = [string, "name" | "tr" | "t", string | null];
+
+export type Isnad = {
+  ordinal: number;
+  toProphet: boolean;
+  problem: string | null;
+  start: number; // offset of the chain inside `ar`, -1 if not found
+  end: number;
+  segments: Segment[];
+  links: Link[]; // from al-Bukhari (index 0) up to the Companion
+};
+
+export type Hadith = {
+  n: string;
+  book: { no: number; title: string } | null;
+  prev: string | null;
+  next: string | null;
+  ar: string;
+  en: string | null;
+  isnads: Isnad[];
+};
+
+export type City = { ar: string; lat: number; lon: number; kind: "city" | "region" };
+
+export type Featured = {
+  n: string;
+  matn: string;
+  companion: string;
+  companionId: string | null;
+  cities: string[];
+  length: number;
+};

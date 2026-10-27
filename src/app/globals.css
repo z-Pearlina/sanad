@@ -1,26 +1,102 @@
 @import "tailwindcss";
 
+/*
+  Sanad palette: a page of a hadith manuscript. The ground is parchment, the
+  text is iron-gall ink, and the accents are the earth pigments of the scribes.
+    raqq       parchment      background
+    raml       sand           map land, raised surfaces
+    midad      ink            text
+    zinjafr    vermilion      transmission words, and the "weak" group only
+    zinjar     verdigris      thiqa
+    mughra     ochre          Companions
+    zaytun     olive          saduq
+    ramad      ash            maqbul / majhul (never for text: 4.2:1)
+    nila       indigo         links and focus
+    bahr       sea            map water
+    khatt      rule           dividers and borders
+*/
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --raqq: #efe5cf;
+  --raml: #e3d5b8;
+  --midad: #2b1d14;
+  --midad-soft: #6b5646;
+  --zinjafr: #9c2f1f;
+  --zinjar: #2f6b5b;
+  --mughra: #8a5e14;
+  --zaytun: #5c6128;
+  --ramad: #7a6a58;
+  --nila: #2e3f63;
+  --bahr: #c3ccbd;
+  --khatt: #cdbb98;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
+/* "Ink and clay": follows the system setting */
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --raqq: #1d1610;
+    --raml: #33281e;
+    --midad: #efe4cc;
+    --midad-soft: #b9a68c;
+    --zinjafr: #e58a72;
+    --zinjar: #86c2ae;
+    --mughra: #e3b45c;
+    --zaytun: #bdbf78;
+    --ramad: #a8977f;
+    --nila: #aebde3;
+    --bahr: #1e2723;
+    --khatt: #4a3b2d;
   }
 }
 
+@theme inline {
+  --color-raqq: var(--raqq);
+  --color-raml: var(--raml);
+  --color-midad: var(--midad);
+  --color-midad-soft: var(--midad-soft);
+  --color-zinjafr: var(--zinjafr);
+  --color-zinjar: var(--zinjar);
+  --color-mughra: var(--mughra);
+  --color-zaytun: var(--zaytun);
+  --color-ramad: var(--ramad);
+  --color-nila: var(--nila);
+  --color-bahr: var(--bahr);
+  --color-khatt: var(--khatt);
+
+  --font-sans: "IBM Plex Sans Arabic", system-ui, sans-serif;
+  --font-naskh: "Amiri", "Traditional Arabic", serif;
+  --font-ruqaa: "Aref Ruqaa", "Amiri", serif;
+}
+
+html {
+  background: var(--raqq);
+  color: var(--midad);
+  color-scheme: light dark;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  font-variant-numeric: lining-nums;
+}
+
+/* Amiri carries full vowelling: give it at least twice its size in line height */
+.naskh {
+  font-family: var(--font-naskh);
+  line-height: 2.1;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+[role="tab"]:focus-visible {
+  outline: 2px solid var(--nila);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
