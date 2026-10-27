@@ -1,0 +1,11 @@
+# Render Blueprint: deploys Sanad as a free Static Site (served from a CDN,
+# never sleeps). In Render: New -> Blueprint -> pick this repository.
+services:
+  - type: web
+    name: sanad
+    runtime: static
+    buildCommand: npm ci && npm run build
+    staticPublishPath: ./out
+    envVars:
+      - key: NEXT_PUBLIC_UMMAH_API_BASE
+        value: https://ummahapi.com
