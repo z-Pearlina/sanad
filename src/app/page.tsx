@@ -1,4 +1,5 @@
 import Link from "next/link";
+import SearchBox from "@/components/SearchBox";
 import SpreadMap from "@/components/SpreadMap";
 import { readData } from "@/lib/readData";
 import type { City, Featured, MapData, Tabaqa } from "@/lib/types";
@@ -18,17 +19,9 @@ export default function Home() {
 
       <SpreadMap map={map} cities={cities} spread={spread} />
 
-      <form action="/hadith/" className="mt-10 flex max-w-sm gap-2">
-        <label htmlFor="n" className="sr-only">رقم الحديث</label>
-        <input
-          id="n"
-          name="n"
-          inputMode="numeric"
-          placeholder="رقم الحديث، مثل 1"
-          className="min-w-0 flex-1 rounded-sm border border-khatt bg-raqq px-3 py-2"
-        />
-        <button className="rounded-sm bg-nila px-4 py-2 text-raqq">اعرض</button>
-      </form>
+      <section className="mt-12">
+        <SearchBox />
+      </section>
 
       <section className="mt-10" aria-labelledby="featured-h">
         <h2 id="featured-h" className="naskh text-2xl font-bold">أحاديث مختارة</h2>

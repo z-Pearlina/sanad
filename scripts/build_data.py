@@ -321,6 +321,11 @@ def main() -> None:
                     used[nid]["students"][ids[i - 1]] += 1
             stats["isnads"] += 1
             stats["known_all"] += all(ln["id"] for ln in chain)
+            stats["links"] += len(chain)
+            stats["links_known"] += sum(1 for ln in chain if ln["id"])
+            stats["to_prophet"] += ends == "prophet"
+            stats["problems"] += bool(problem)
+            stats["not_located"] += ar.find(raw) < 0 if raw else 1
             start = ar.find(raw) if raw else -1
             chains.append({
                 "ordinal": ordinal,
@@ -388,6 +393,31 @@ def main() -> None:
                          "cities": list(dict.fromkeys(ln["city"] for ln in reversed(chain["links"]) if ln.get("city"))),
                          "length": len(chain["links"])})
     write(out / "featured.json", featured)
+
+    # ---- figures shown on the site (About page): computed here, never typed by hand
+    chain_people = [by_no[i] for i in used if i != BUKHARI_TAQRIB]
+    write(out / "stats.json", {
+        "hadiths": len(hadiths),
+        "isnads": stats["isnads"],
+        "isnadsFullyKnown": stats["known_all"],
+        "isnadsToProphet": stats["to_prophet"],
+        "isnadsWithNote": stats["problems"],
+        "isnadsNotLocated": stats["not_located"],
+        "links": stats["links"],
+        "linksKnown": stats["links_known"],
+        "narrators": len(chain_people),
+        "narratorsWithTabaqa": sum(1 for p in chain_people if p["tabaqa"]),
+        "narratorsWithNisbaCity": sum(1 for p in chain_people if p["citySrc"] == "nisba"),
+        "narratorsWithReviewedCity": sum(1 for p in chain_people if p["citySrc"] == "reviewed"),
+        "narratorsWithDeath": sum(1 for p in chain_people if p["death"]),
+        "narratorsWithRank": sum(1 for p in chain_people if p["rank"]),
+        "taqribNarrators": len(by_no),
+        "taqribLocated": sum(s_["located"] for s_ in spread),
+        "books": len(sections),
+        "hadithsWithoutBook": sum(1 for v in sec_of.values() if v == 0),
+        "cities": len(CITIES),
+        "featured": len(FEATURED),
+    })
 
     # ---- report
     located = sum(s["located"] for s in spread)
