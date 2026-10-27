@@ -49,3 +49,39 @@ export type Featured = {
   cities: string[];
   length: number;
 };
+
+// public/data/map.json: the base map projected at build time (scripts/build_map.mjs)
+export type MapData = { w: number; h: number; land: string; frame: string; cities: Record<string, [number, number]> };
+
+export type Tabaqa = {
+  tabaqa: number;
+  ordinal: string;
+  desc: string;
+  example: string;
+  era: "before100" | "after100" | "after200";
+  total: number; // narrators of this tabaqa in the Taqrib
+  located: number; // of them, with a city nisba
+  cities: Record<string, number>;
+};
+
+export type NarratorRef = { id: string; name: string | null; count: number };
+
+export type Narrator = {
+  id: string;
+  name: string;
+  kunya: string | null;
+  laqab: string | null;
+  death: number | null;
+  tabaqa: number | null;
+  rank: number | null;
+  group: Group;
+  phrase: string | null;
+  city: string | null;
+  citySrc: "nisba" | "reviewed" | null;
+  nisbaWord: string | null;
+  entry: string;
+  count: number;
+  hadiths: string[];
+  teachers: NarratorRef[];
+  students: NarratorRef[];
+};

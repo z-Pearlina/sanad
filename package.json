@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "npx serve out",
-    "lint": "eslint"
+    "lint": "eslint",
+    "data": "python -P scripts/build_data.py && node scripts/build_map.mjs",
+    "shots": "node scripts/screenshots.mjs"
   },
   "dependencies": {
     "@fontsource/amiri": "^5.3.0",

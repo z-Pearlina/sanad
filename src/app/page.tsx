@@ -1,19 +1,24 @@
-import { readFileSync } from "node:fs";
-import path from "node:path";
 import Link from "next/link";
-import type { Featured } from "@/lib/types";
+import SpreadMap from "@/components/SpreadMap";
+import { readData } from "@/lib/readData";
+import type { City, Featured, MapData, Tabaqa } from "@/lib/types";
 
-// Read at build time: the page is exported as static HTML.
-const featured: Featured[] = JSON.parse(
-  readFileSync(path.join(process.cwd(), "public/data/featured.json"), "utf-8"),
-);
+const featured = readData<Featured[]>("featured.json");
+const map = readData<MapData>("map.json");
+const cities = readData<Record<string, City>>("cities.json");
+const spread = readData<Tabaqa[]>("spread.json");
 
 export default function Home() {
   return (
-    <main className="mx-auto max-w-5xl px-4 py-8">
+    <main className="mx-auto max-w-5xl px-4 py-6">
       <h1 className="naskh text-3xl font-bold leading-snug">رجال صحيح البخاري في الزمان والمكان</h1>
+      <p className="mt-1 mb-5 max-w-2xl text-midad-soft">
+        كيف انتقل مركز الرواية من جيل إلى جيل: اختر طبقة، أو شغّل الطبقات من الصحابة إلى صغار الآخذين عن تبع الأتباع.
+      </p>
 
-      <form action="/hadith/" className="mt-6 flex max-w-sm gap-2">
+      <SpreadMap map={map} cities={cities} spread={spread} />
+
+      <form action="/hadith/" className="mt-10 flex max-w-sm gap-2">
         <label htmlFor="n" className="sr-only">رقم الحديث</label>
         <input
           id="n"
@@ -32,7 +37,10 @@ export default function Home() {
             <li key={f.n}>
               <Link href={`/hadith/?n=${f.n}`} className="group flex items-baseline gap-4 py-3">
                 <span className="w-12 shrink-0 text-sm tabular-nums text-midad-soft">{f.n}</span>
-                <span className="naskh line-clamp-1 text-lg group-hover:text-nila">{f.matn}</span>
+                <span className="naskh line-clamp-1 flex-1 text-lg group-hover:text-nila">{f.matn}</span>
+                <span className="hidden shrink-0 text-xs text-midad-soft sm:inline">
+                  {f.cities.map((c) => cities[c]?.ar).join(" ← ")}
+                </span>
               </Link>
             </li>
           ))}

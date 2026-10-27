@@ -288,8 +288,10 @@ def main() -> None:
         links[iid].append((pos, raw, pid, conf, tr))
 
     out = args.out
-    if out.exists():
-        shutil.rmtree(out)
+    # Clear the per-item folders only: map.json comes from scripts/build_map.mjs.
+    for folder in ("hadith", "narrators"):
+        if (out / folder).exists():
+            shutil.rmtree(out / folder)
 
     # ---- hadith files + narrator usage
     used: dict[str, dict] = defaultdict(lambda: {"hadiths": [], "teachers": Counter(), "students": Counter()})
@@ -377,7 +379,11 @@ def main() -> None:
         h = json.loads((out / "hadith" / f"{n}.json").read_text(encoding="utf-8"))
         chain = h["isnads"][0]
         companion = chain["links"][-1]
-        featured.append({"n": n, "matn": h["ar"][chain["end"]:].strip(" ،,:"),
+        matn = h["ar"][chain["end"]:].replace("‏", "")
+        # Preview: the first quoted words of the matn, verbatim, when there are any.
+        quoted = re.search(r'"\s*([^"]{12,})"?', matn)  # some quotes are never closed (hadith 1)
+        preview = quoted.group(1).strip() if quoted else re.sub(r"^[\s،,:ـ]*(?:رض[يى] الله عن(?:هما|ها|ه)\s*ـ?)?[\s،,:ـ]*", "", matn)
+        featured.append({"n": n, "matn": preview,
                          "companion": companion["raw"], "companionId": companion["id"],
                          "cities": list(dict.fromkeys(ln["city"] for ln in reversed(chain["links"]) if ln.get("city"))),
                          "length": len(chain["links"])})

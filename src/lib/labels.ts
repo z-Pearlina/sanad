@@ -69,3 +69,19 @@ export function deathEra(tabaqa: number | null | undefined): { label: string; fr
 }
 
 export const deathText = (year: number) => `ت ${year}هـ`;
+
+// Ibn Hajar: "if of the first and second, they are before the hundred; from the
+// third to the end of the eighth, after the hundred; from the ninth on, after the two hundred."
+export const ERA_TEXT: Record<"before100" | "after100" | "after200", string> = {
+  before100: "وفياتهم قبل المائة",
+  after100: "وفياتهم بعد المائة",
+  after200: "وفياتهم بعد المائتين",
+};
+
+/** "1 حديث", "2 حديثان", "5 أحاديث", "12 حديثاً": the counted noun after a number. */
+export function hadithCount(n: number) {
+  if (n === 1) return "حديث واحد";
+  if (n === 2) return "حديثان";
+  const mod = n % 100;
+  return `${n} ${mod >= 3 && mod <= 10 ? "أحاديث" : "حديثاً"}`;
+}

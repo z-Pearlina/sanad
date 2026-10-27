@@ -3,14 +3,15 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import Chain from "./Chain";
+import ChainMap from "./ChainMap";
 import HadithText from "./HadithText";
 import Salla from "./Salla";
 import Timeline from "./Timeline";
-import { getCities, getHadith } from "@/lib/data";
+import { getCities, getHadith, getMap } from "@/lib/data";
 import { fetchUmmahHadith, type UmmahHadith } from "@/lib/ummah";
-import type { City, Hadith } from "@/lib/types";
+import type { City, Hadith, MapData } from "@/lib/types";
 
-type Loaded = { hadith: Hadith; cities: Record<string, City> };
+type Loaded = { hadith: Hadith; cities: Record<string, City>; map: MapData };
 
 export default function HadithView({ n }: { n: string }) {
   const [data, setData] = useState<Loaded | null>(null);
@@ -20,8 +21,8 @@ export default function HadithView({ n }: { n: string }) {
 
   useEffect(() => {
     let live = true;
-    Promise.all([getHadith(n), getCities()])
-      .then(([hadith, cities]) => live && setData({ hadith, cities }))
+    Promise.all([getHadith(n), getCities(), getMap()])
+      .then(([hadith, cities, map]) => live && setData({ hadith, cities, map }))
       .catch(() => live && setMissing(true));
     fetchUmmahHadith(n).then((h) => live && setUmmah(h));
     return () => {
@@ -38,7 +39,7 @@ export default function HadithView({ n }: { n: string }) {
   }
   if (!data) return <p className="py-16 text-center text-midad-soft">جارٍ تحميل الحديث…</p>;
 
-  const { hadith, cities } = data;
+  const { hadith, cities, map } = data;
   // Use the Ummah API text when its chains sit exactly where ours do, so the markup still fits.
   const fromUmmah =
     ummah !== null &&
@@ -120,10 +121,17 @@ export default function HadithView({ n }: { n: string }) {
           {isnad.problem && <p className="mb-4 border-s-2 border-khatt ps-3 text-sm">{isnad.problem}</p>}
           <Chain isnad={isnad} cities={cities} />
         </section>
-        <section aria-labelledby="time-h">
-          <h2 id="time-h" className="naskh mb-4 text-2xl font-bold">الزمن</h2>
-          <Timeline isnad={isnad} />
-        </section>
+        <div className="space-y-10">
+          <section aria-labelledby="place-h">
+            <h2 id="place-h" className="naskh mb-4 text-2xl font-bold">المكان</h2>
+            {/* keyed so the line draws again when switching chains */}
+            <ChainMap key={isnad.ordinal} isnad={isnad} map={map} cities={cities} />
+          </section>
+          <section aria-labelledby="time-h">
+            <h2 id="time-h" className="naskh mb-4 text-2xl font-bold">الزمن</h2>
+            <Timeline isnad={isnad} />
+          </section>
+        </div>
       </div>
     </article>
   );

@@ -92,11 +92,33 @@ input:focus-visible,
   outline-offset: 2px;
 }
 
+/* The spread map is drawn 1000 units wide: on a phone its labels need more units to stay readable. */
+@media (max-width: 640px) {
+  .spread-label {
+    font-size: 40px;
+    stroke-width: 10px;
+  }
+}
+
+/* The chain line on the hadith map draws itself once (pathLength=1 on the path). */
+.draw-line {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: draw-line 2.4s ease-in-out 0.3s forwards;
+}
+
+@keyframes draw-line {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
     transition-duration: 0.01ms !important;
   }
 }

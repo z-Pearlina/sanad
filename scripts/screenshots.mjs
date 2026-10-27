@@ -1,12 +1,13 @@
 // Screenshots of the exported site for review: desktop, phone (390px) and dark mode.
 // Usage: node scripts/screenshots.mjs [baseUrl] [outDir] [path ...]
+// Paths may omit the leading slash ("" is the home page), which Git Bash would rewrite.
 // Serve `out/` first (any static server). Fails if a phone page scrolls sideways.
 import { chromium } from "playwright";
 import { mkdirSync } from "node:fs";
 import path from "node:path";
 
 const [base = "http://localhost:4321", outDir = "screenshots", ...paths] = process.argv.slice(2);
-const pages = paths.length ? paths : ["/", "/hadith/?n=1"];
+const pages = (paths.length ? paths : ["", "hadith/?n=1"]).map((p) => "/" + p.replace(/^\//, ""));
 const views = [
   { name: "desktop", viewport: { width: 1280, height: 900 }, colorScheme: "light" },
   { name: "phone", viewport: { width: 390, height: 844 }, colorScheme: "light", isMobile: true },
