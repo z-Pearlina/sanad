@@ -1,4 +1,4 @@
-import MapBase, { MapLabel, placeLabels } from "./MapBase";
+import MapBase, { MapLabel, cropView, placeLabels } from "./MapBase";
 import type { City, Isnad, MapData } from "@/lib/types";
 
 const PAD = 70; // map units around the chain's cities
@@ -16,23 +16,8 @@ export default function ChainMap({ isnad, map, cities }: { isnad: Isnad; map: Ma
   }
   const unplaced = order.filter((l) => !l.city).length;
 
-  // Crop the map around the stops, keeping its proportions.
   const pts = stops.map((k) => map.cities[k]);
-  let view: [number, number, number, number] | undefined;
-  if (pts.length) {
-    const xs = pts.map((p) => p[0]);
-    const ys = pts.map((p) => p[1]);
-    let w = Math.max(MIN_W, Math.max(...xs) - Math.min(...xs) + 2 * PAD);
-    let h = Math.max(...ys) - Math.min(...ys) + 2 * PAD;
-    const ratio = map.h / map.w;
-    if (h / w > ratio) w = h / ratio;
-    else h = w * ratio;
-    const cx = (Math.max(...xs) + Math.min(...xs)) / 2;
-    const cy = (Math.max(...ys) + Math.min(...ys)) / 2;
-    const x = Math.min(Math.max(0, cx - w / 2), Math.max(0, map.w - w));
-    const y = Math.min(Math.max(0, cy - h / 2), Math.max(0, map.h - h));
-    view = [x, y, Math.min(w, map.w), Math.min(h, map.h)];
-  }
+  const view = cropView(map, pts, PAD, MIN_W);
   const unit = (view?.[2] ?? map.w) / 100; // 1% of the visible width
   const line = pts.map(([x, y], i) => `${i ? "L" : "M"}${x} ${y}`).join(" ");
 

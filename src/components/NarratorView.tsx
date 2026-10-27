@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import Dara from "./Dara";
-import { getCities, getNarrator, getSpread } from "@/lib/data";
+import NetworkMap from "./NetworkMap";
+import { getCities, getMap, getNarrator, getSpread } from "@/lib/data";
 import { ERA_TEXT, GROUP_LABEL, deathEra, deathText, hadithCount, tabaqaName } from "@/lib/labels";
-import type { City, Narrator, NarratorRef, Tabaqa } from "@/lib/types";
+import type { City, MapData, Narrator, NarratorRef, Tabaqa } from "@/lib/types";
 
-type Loaded = { narrator: Narrator; cities: Record<string, City>; spread: Tabaqa[] };
+type Loaded = { narrator: Narrator; cities: Record<string, City>; spread: Tabaqa[]; map: MapData };
 
 const SHOWN_PEOPLE = 12;
 const SHOWN_HADITHS = 80;
@@ -18,8 +19,8 @@ export default function NarratorView({ id }: { id: string }) {
 
   useEffect(() => {
     let live = true;
-    Promise.all([getNarrator(id), getCities(), getSpread()])
-      .then(([narrator, cities, spread]) => live && setData({ narrator, cities, spread }))
+    Promise.all([getNarrator(id), getCities(), getSpread(), getMap()])
+      .then(([narrator, cities, spread, map]) => live && setData({ narrator, cities, spread, map }))
       .catch(() => live && setMissing(true));
     return () => {
       live = false;
@@ -35,7 +36,7 @@ export default function NarratorView({ id }: { id: string }) {
   }
   if (!data) return <p className="py-16 text-center text-midad-soft">جارٍ تحميل الترجمة…</p>;
 
-  const { narrator: p, cities, spread } = data;
+  const { narrator: p, cities, spread, map } = data;
   const tabaqa = p.tabaqa ? spread.find((s) => s.tabaqa === p.tabaqa) : undefined;
   const era = p.death ? null : deathEra(p.tabaqa);
   const city = p.city ? cities[p.city]?.ar : null;
@@ -94,6 +95,14 @@ export default function NarratorView({ id }: { id: string }) {
           </Fact>
         </dl>
       </div>
+
+      {(p.teachers.length > 0 || p.students.length > 0) && (
+        <section className="border-t border-khatt py-6" aria-label="خريطة الشيوخ والتلاميذ">
+          <div className="max-w-2xl">
+            <NetworkMap narrator={p} map={map} cities={cities} />
+          </div>
+        </section>
+      )}
 
       <div className="grid gap-x-10 gap-y-8 border-t border-khatt py-6 md:grid-cols-2">
         <People title="شيوخه" note="من روى عنهم في أسانيد البخاري" people={p.teachers} />

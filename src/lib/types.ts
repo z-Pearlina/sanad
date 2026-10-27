@@ -64,7 +64,7 @@ export type Tabaqa = {
   cities: Record<string, number>;
 };
 
-export type NarratorRef = { id: string; name: string | null; count: number };
+export type NarratorRef = { id: string; name: string | null; city: string | null; count: number };
 
 export type Narrator = {
   id: string;

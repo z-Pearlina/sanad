@@ -28,6 +28,12 @@ SAHABA_HOMES = ROOT / "scripts/sahaba_homes.json"  # reviewed homes of Companion
 
 # Featured hadiths (reviewed): every narrator identified, confidence >= 0.8, three cities or more,
 # short and well known. Hadith 1 is kept first although its chain has two cities only.
+# "Order the chain" game: whole chains of known narrators, short enough to sort on a phone.
+GAME_LINKS = (4, 6)  # narrators per chain, al-Bukhari not counted
+GAME_MAX = 400
+# Names that only point to someone else in the chain ("his father") cannot be placed by a player.
+GAME_SKIP_NAMES = ["أبيه", "أبيها", "جده", "جدها", "عمه", "أمه", "أخيه", "أبي", "خاله", "مولاه"]
+
 FEATURED = ["1", "3461", "6724", "3636", "5363", "6516", "1610", "2075", "1933", "3559", "5448", "1913", "2875"]
 
 BUKHARI_TAQRIB = "5727"  # al-Bukhari himself, appended as the last link of every chain
@@ -296,6 +302,8 @@ def main() -> None:
     # ---- hadith files + narrator usage
     used: dict[str, dict] = defaultdict(lambda: {"hadiths": [], "teachers": Counter(), "students": Counter()})
     stats = Counter()
+    game: dict[tuple, dict] = {}  # one entry per distinct chain of narrators
+    game_skip = {norm(w) for w in GAME_SKIP_NAMES}
     numbers = [h[1] for h in hadiths]
     for idx, (hid, number, _, _) in enumerate(hadiths):
         ar = texts.get((hid, 1), "")
@@ -319,6 +327,13 @@ def main() -> None:
                     used[nid]["teachers"][ids[i + 1]] += 1
                 if i > 0 and ids[i - 1] is not None:
                     used[nid]["students"][ids[i - 1]] += 1
+            ids_up = [ln["id"] for ln in reversed(chain)]  # Companion first
+            if (ends == "prophet" and GAME_LINKS[0] <= len(chain) <= GAME_LINKS[1] and all(ids_up)
+                    and len(set(ids_up)) == len(ids_up) and tuple(ids_up) not in game
+                    and all((ln["conf"] or 0) >= 0.8 and ln.get("tabaqa") for ln in chain)
+                    and not any(norm(ln["raw"]) in game_skip for ln in chain)):
+                game[tuple(ids_up)] = {"n": number, "links": [
+                    {"id": ln["id"], "raw": ln["raw"], "tabaqa": ln["tabaqa"], "death": ln["death"]} for ln in reversed(chain)]}
             stats["isnads"] += 1
             stats["known_all"] += all(ln["id"] for ln in chain)
             stats["links"] += len(chain)
@@ -354,13 +369,14 @@ def main() -> None:
     for no, u in used.items():
         p = by_no[no]
         name_of = lambda n: by_no[n]["name"] if n in by_no else None  # noqa: E731
+        city_of_no = lambda n: by_no[n]["city"] if n in by_no else None  # noqa: E731
         write(out / "narrators" / f"{no}.json", {
             **{k: v for k, v in p.items() if k != "nisba"},
             "nisbaWord": p["nisba"],
             "count": len(u["hadiths"]),
             "hadiths": u["hadiths"],
-            "teachers": [{"id": t, "name": name_of(t), "count": c} for t, c in u["teachers"].most_common()],
-            "students": [{"id": s, "name": name_of(s), "count": c} for s, c in u["students"].most_common()],
+            "teachers": [{"id": t, "name": name_of(t), "city": city_of_no(t), "count": c} for t, c in u["teachers"].most_common()],
+            "students": [{"id": s, "name": name_of(s), "city": city_of_no(s), "count": c} for s, c in u["students"].most_common()],
         })
         index.append({"id": no, "name": p["name"], "kunya": p["kunya"], "laqab": p["laqab"],
                       "nisba": p["nisba"], "death": p["death"], "group": p["group"], "count": len(u["hadiths"])})
@@ -393,6 +409,11 @@ def main() -> None:
                          "cities": list(dict.fromkeys(ln["city"] for ln in reversed(chain["links"]) if ln.get("city"))),
                          "length": len(chain["links"])})
     write(out / "featured.json", featured)
+
+    # ---- game: an even sample across the book, so every run of the game differs
+    chains_ok = list(game.values())
+    step = max(1, len(chains_ok) // GAME_MAX)
+    write(out / "game.json", chains_ok[::step][:GAME_MAX])
 
     # ---- figures shown on the site (About page): computed here, never typed by hand
     chain_people = [by_no[i] for i in used if i != BUKHARI_TAQRIB]

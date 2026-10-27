@@ -68,3 +68,20 @@ export function placeLabels<T extends { x: number; y: number }>(items: T[], minD
   }
   return kept;
 }
+
+/** A view box around `points` (with `pad` map units of margin), in the map's own proportions. */
+export function cropView(map: MapData, points: [number, number][], pad = 70, minWidth = 360): [number, number, number, number] | undefined {
+  if (!points.length) return undefined;
+  const xs = points.map((p) => p[0]);
+  const ys = points.map((p) => p[1]);
+  let w = Math.max(minWidth, Math.max(...xs) - Math.min(...xs) + 2 * pad);
+  let h = Math.max(...ys) - Math.min(...ys) + 2 * pad;
+  const ratio = map.h / map.w;
+  if (h / w > ratio) w = h / ratio;
+  else h = w * ratio;
+  const cx = (Math.max(...xs) + Math.min(...xs)) / 2;
+  const cy = (Math.max(...ys) + Math.min(...ys)) / 2;
+  const x = Math.min(Math.max(0, cx - w / 2), Math.max(0, map.w - w));
+  const y = Math.min(Math.max(0, cy - h / 2), Math.max(0, map.h - h));
+  return [x, y, Math.min(w, map.w), Math.min(h, map.h)];
+}

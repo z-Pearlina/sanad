@@ -3,6 +3,7 @@ import Link from "next/link";
 const NAV = [
   { href: "/#search", label: "بحث" },
   { href: "/books/", label: "الكتب" },
+  { href: "/game/", label: "رتّب السند" },
   { href: "/about/", label: "حول" },
 ];
 
