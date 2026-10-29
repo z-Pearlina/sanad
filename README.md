@@ -6,10 +6,10 @@
 
 ## ما في الموقع
 
-- **الرئيسية:** خريطة انتشار رواة الكتب الستة عبر الطبقات الاثنتي عشرة، بمنزلق وزر تشغيل، ثم البحث والأحاديث المختارة.
-- **صفحة الحديث** (`/hadith/?n=1`): النص بصيغ التحمّل ملوّنة وأسماء الرواة روابط، والسلسلة من النبي ﷺ إلى البخاري بدارة لكل راوٍ وحكمه، وخريطة السند، والشريط الزمني للوفيات.
-- **صفحة الراوي** (`/narrator/?id=4685`): ترجمته كاملة من التقريب، وطبقته ووفاته وبلده، وشيوخه وتلاميذه في أسانيد البخاري، وأحاديثه.
-- **الكتب** (`/books/`)، و**حول** (`/about/`): المنهج والمصادر وحدود البيانات.
+- **الرئيسية:** خريطة كاملة الشاشة لمواطن الرواة عبر الطبقات الاثنتي عشرة، تُشغَّل طبقةً بعد طبقة، وخطوطها انتقال الرواية من بلد الشيخ إلى بلد تلميذه، ومنها «تتبّع رحلة حديث» للأحاديث المختارة.
+- **صفحة الحديث** (`/hadith/?n=1`): النص بصيغ التحمّل ملوّنة وأسماء الرواة روابط، ثم يُروى السند على الخريطة راوياً بعد راوٍ من موطن الصحابي إلى البخاري، ويضيء الراوي نفسه في عمود السلسلة وعلى الشريط الزمني، وفي الآخر ملخص الطريق.
+- **صفحة الراوي** (`/narrator/?id=4685`): ترجمته كاملة وتحت لفظ الحكم خط بلون مرتبته، وأعداده، وخريطة صلاته بشيوخه وتلاميذه، وقوائمهم، وأحاديثه.
+- **البحث** (`/search/`)، و**الكتب** (`/books/`)، و**رتّب السند** (`/game/`)، و**حول** (`/about/`): المنهج والمصادر وحدود البيانات.
 
 ## المنهج باختصار
 
@@ -22,7 +22,8 @@
 
 - Next.js 16 بتصدير ثابت (`output: "export"`)، وTypeScript، وTailwind 4. لا خادم ولا قاعدة بيانات وقت التشغيل.
 - البيانات ملفات JSON مولَّدة مسبقاً في `public/data/` ومرفوعة مع المستودع، فلا يحتاج النشر إلى Python.
-- الخريطة تُسقط وقت توليد البيانات بـd3-geo وtopojson-client من world-atlas، فيصل إلى المتصفح مسار SVG جاهز.
+- كل الخرائط تُرسم من `public/data/geometry.json` المسقط مسبقاً (`scripts/build_geometry.mjs`)، بوحدة مشتركة في `src/components/sanad-map/core.ts` (d3 للتكبير والحركة).
+- موطن كل راوٍ من دالة واحدة (`home_of` في `scripts/build_map_data.py`) يستعملها مولّدا البيانات، فلا تختلف الخرائط.
 - نص الحديث يُجلب من Ummah API في المتصفح، مع بديل صامت من بياناتنا إن تعذّر.
 
 ## التشغيل محلياً
@@ -48,7 +49,7 @@ $IY repo add "$PWD/data-src/isnady-data"
 $IY repo use isnady-all-sources-default
 $IY catalog import sahih_al_bukhari --language ara --language eng
 $IY catalog import taqrib_al_tahdhib_ibn_hajar_al_asqalani
-npm run data       # scripts/build_data.py, then scripts/build_map.mjs
+npm run data       # scripts/build_data.py, then scripts/build_map_data.py (map.json)
 ```
 
 ## النشر على Render
@@ -65,7 +66,8 @@ Static Site، وأمر البناء `npm ci && npm run build`، ومجلد ال�
 | [OpenITI](https://openiti.org) | «تقريب التهذيب» لابن حجر، تحقيق محمد عوامة (دار الرشيد، 1986) | |
 | [Ummah API](https://ummahapi.com) | نص الحديث في صفحة الحديث | |
 | [AhmedBaset/hadith-json](https://github.com/AhmedBaset/hadith-json) | عناوين الكتب بالعربية | |
-| [world-atlas](https://github.com/topojson/world-atlas) / Natural Earth | يابسة الخريطة | ISC / ملك عام |
+| [Natural Earth](https://www.naturalearthdata.com) | خريطة الأساس: اليابسة (عبر [world-atlas](https://github.com/topojson/world-atlas)، ISC)، والأنهار والبحيرات | ملكية عامة |
+| [d3](https://d3js.org) | الإسقاط والتكبير والحركة | ISC |
 | Amiri، IBM Plex Sans Arabic، Aref Ruqaa ([Fontsource](https://fontsource.org)) | الخطوط | SIL OFL 1.1 |
 
 </div>
@@ -80,4 +82,4 @@ Static Site، وأمر البناء `npm ci && npm run build`، ومجلد ال�
 - **Hadith page** (`/hadith/?n=1`): the Arabic text with transmission words marked and narrators linked; the chain from the Prophet ﷺ down to al-Bukhari; the chain map; a timeline of death years. Text is fetched live from the Ummah API, with a silent fallback to the bundled data.
 - **Narrator page** (`/narrator/?id=4685`): the full Taqrib entry, tabaqa, death, home, teachers and students as they appear in al-Bukhari's chains.
 
-The app issues no grading of its own: it quotes Ibn Hajar and uses his rank only for colour. Chains are parsed and linked by [isnady](https://github.com/bayramkotan/isnady) (MIT); texts come from fawazahmed0/hadith-api (Unlicense) via isnady-data; the Taqrib from OpenITI. Built with Next.js 16 (static export), TypeScript and Tailwind 4; every figure shown is computed from the data.
+The app issues no grading of its own: it quotes Ibn Hajar and uses his rank only for colour. Chains are parsed and linked by [isnady](https://github.com/bayramkotan/isnady) (MIT); texts come from fawazahmed0/hadith-api (Unlicense) via isnady-data; the Taqrib from OpenITI. Built with Next.js 16 (static export), TypeScript and Tailwind 4; the maps are drawn with d3 from a pre-projected Natural Earth base map, and every figure shown is computed from the data.

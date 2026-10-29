@@ -92,6 +92,66 @@ input:focus-visible,
   outline-offset: 2px;
 }
 
+/* ---------------------------------------------------------------- page frame
+   Every page outside the home map sits on the same leaf (see PageFrame.tsx and
+   sanad-map.css): parchment grain under the ink, and the jadwal, a ruled frame
+   of ink and ochre with star corners, fixed around the window. */
+.page-grain {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  mix-blend-mode: multiply;
+  opacity: 0.55;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .45  0 0 0 0 .35  0 0 0 0 .22  0 0 0 .22 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+.page-body {
+  position: relative;
+  z-index: 1;
+  /* keep the text inside the jadwal */
+  padding: 12px 14px 26px;
+}
+.page-frame {
+  position: fixed;
+  z-index: 50;
+  pointer-events: none;
+  inset: max(10px, env(safe-area-inset-top, 0px)) max(10px, env(safe-area-inset-right, 0px))
+    max(10px, env(safe-area-inset-bottom, 0px)) max(10px, env(safe-area-inset-left, 0px));
+  box-shadow: inset 0 0 0 1px var(--midad), inset 0 0 0 5px transparent, inset 0 0 0 6px var(--mughra);
+}
+.page-frame svg {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+}
+.page-frame .c1 { top: -8px; right: -8px; }
+.page-frame .c2 { top: -8px; left: -8px; }
+.page-frame .c3 { bottom: -8px; right: -8px; }
+.page-frame .c4 { bottom: -8px; left: -8px; }
+.page-frame svg path {
+  fill: var(--raqq);
+  stroke: var(--mughra);
+  stroke-width: 1.4;
+}
+.page-frame svg circle {
+  fill: var(--zinjafr);
+}
+@media (prefers-color-scheme: dark) {
+  .page-grain {
+    mix-blend-mode: screen;
+    opacity: 0.22;
+  }
+}
+@media (max-width: 860px) {
+  .page-frame {
+    inset: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-inset-right, 0px))
+      max(6px, env(safe-area-inset-bottom, 0px)) max(6px, env(safe-area-inset-left, 0px));
+  }
+  .page-body {
+    padding: 8px 8px 22px;
+  }
+}
+
 /* The narrator the hadith map is drawing: a ring breathes around his dara (Dara lit). */
 .dara-lit {
   transform-box: fill-box;

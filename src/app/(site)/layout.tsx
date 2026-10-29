@@ -1,10 +1,5 @@
-import SiteHeader from "@/components/SiteHeader";
+import PageFrame from "@/components/PageFrame";
 
 export default function SiteLayout({ children }: LayoutProps<"/">) {
-  return (
-    <>
-      <SiteHeader />
-      <div className="flex-1">{children}</div>
-    </>
-  );
+  return <PageFrame>{children}</PageFrame>;
 }

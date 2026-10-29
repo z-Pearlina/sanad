@@ -8,42 +8,56 @@ type Stats = { hadiths: number; hadithsWithoutBook: number };
 
 const sections = readData<Section[]>("sections.json");
 const stats = readData<Stats>("stats.json");
+const largest = Math.max(...sections.map((s) => s.count));
 
 export const metadata: Metadata = { title: "كتب صحيح البخاري · سَنَد" };
 
+/** The books of the Sahih as a manuscript's table of contents: one ruled line each. */
 export default function BooksPage() {
   return (
-    <main className="mx-auto max-w-5xl px-4 py-6">
-      <h1 className="naskh text-3xl font-bold leading-snug">كتب صحيح البخاري</h1>
-      <p className="mt-1 max-w-2xl text-midad-soft">
+    <main className="mx-auto max-w-4xl px-4 py-8">
+      <h1 className="naskh text-4xl font-bold leading-snug">فهرس كتب صحيح البخاري</h1>
+      <p className="mt-2 max-w-2xl text-midad-soft">
         {sections.length} كتاباً تضم {stats.hadiths} حديثاً بترقيم النسخة المستعملة.
-        {stats.hadithsWithoutBook > 0 && ` ${hadithCount(stats.hadithsWithoutBook)} لم تُنسب في البيانات إلى كتاب.`}
+        {stats.hadithsWithoutBook > 0 && ` ${hadithCount(stats.hadithsWithoutBook)} لم تُنسب في البيانات إلى كتاب.`} اضغط على
+        كتاب لتفتح أول حديث فيه.
       </p>
 
-      <ol className="mt-6 border-t border-khatt">
+      <div
+        className="mt-8 grid grid-cols-[2.25rem_minmax(0,1fr)_auto] gap-x-3 border-b-2 border-midad pb-1 text-xs text-midad-soft"
+        aria-hidden="true"
+      >
+        <span>الرقم</span>
+        <span>الكتاب</span>
+        <span className="flex gap-3">
+          <span className="w-24 text-center">الأحاديث</span>
+          <span className="hidden w-24 sm:inline" />
+          <span className="w-10 text-end">عددها</span>
+        </span>
+      </div>
+      <ol>
         {sections.map((s) => (
-          <li
-            key={s.no}
-            id={`book-${s.no}`}
-            className="grid scroll-mt-4 grid-cols-[2.5rem_1fr] items-baseline gap-x-3 border-b border-khatt py-3 target:bg-raml sm:grid-cols-[2.5rem_1fr_auto]"
-          >
-            <span className="text-sm tabular-nums text-midad-soft">{s.no}</span>
-            <span className="min-w-0">
-              <Link href={`/hadith/?n=${s.first}`} className="naskh text-xl leading-normal hover:text-nila">
-                {s.ar}
-              </Link>
-              {s.en && (
-                <span dir="ltr" lang="en" className="block text-end text-xs text-midad-soft sm:inline sm:ps-3">
-                  {s.en}
+          <li key={s.no} id={`book-${s.no}`} className="scroll-mt-10 target:bg-raml">
+            <Link
+              href={`/hadith/?n=${s.first}`}
+              title={s.en ?? undefined}
+              className="group grid grid-cols-[2.25rem_minmax(0,1fr)_auto] items-baseline gap-x-3 border-b border-khatt py-2.5 transition-colors hover:bg-raml/70 focus-visible:bg-raml/70"
+            >
+              <span className="text-sm tabular-nums text-midad-soft">{s.no}</span>
+              <span className="flex min-w-0 items-baseline gap-2">
+                <span className="naskh text-xl leading-normal group-hover:text-nila">{s.ar}</span>
+                <span className="hidden min-w-4 flex-1 border-b border-dotted border-midad-soft/50 sm:block" aria-hidden="true" />
+              </span>
+              <span className="flex items-center gap-3 text-sm">
+                <bdi dir="ltr" className="w-24 text-center tabular-nums text-midad-soft">
+                  {s.first}–{s.last}
+                </bdi>
+                <span className="relative hidden h-1 w-24 bg-mughra/25 sm:inline-block" aria-hidden="true">
+                  <i className="absolute inset-y-0 start-0 bg-mughra" style={{ width: `${(100 * s.count) / largest}%` }} />
                 </span>
-              )}
-            </span>
-            <span className="col-start-2 text-sm text-midad-soft sm:col-start-auto">
-              <Link href={`/hadith/?n=${s.first}`} className="tabular-nums text-nila hover:underline">{s.first}</Link>
-              {" إلى "}
-              <Link href={`/hadith/?n=${s.last}`} className="tabular-nums text-nila hover:underline">{s.last}</Link>
-              <span className="ps-2">({hadithCount(s.count)})</span>
-            </span>
+                <span className="w-10 text-end tabular-nums">{s.count}</span>
+              </span>
+            </Link>
           </li>
         ))}
       </ol>

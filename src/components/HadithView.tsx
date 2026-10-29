@@ -148,7 +148,7 @@ export default function HadithView({ n }: { n: string }) {
             <Timeline isnad={isnad} step={step} focus={focus} onPoint={setFocus} />
           </section>
         </div>
-        <section aria-labelledby="place-h" className="order-1 lg:sticky lg:top-4 lg:order-2 lg:self-start">
+        <section aria-labelledby="place-h" className="order-1 lg:sticky lg:top-8 lg:order-2 lg:self-start">
           <h2 id="place-h" className="naskh mb-3 text-2xl font-bold">المكان</h2>
           {/* keyed so each chain is told again from its Companion */}
           <HadithMap key={isnad.ordinal} nodes={nodes} label={mapLabel} focus={focus} onStep={setStep} />
