@@ -1,4 +1,4 @@
-import type { City, Hadith, MapData, Narrator, Tabaqa } from "./types";
+import type { City, Hadith, Narrator, Tabaqa } from "./types";
 
 const cache = new Map<string, Promise<unknown>>();
 
@@ -19,6 +19,5 @@ export function getData<T>(path: string): Promise<T> {
 
 export const getHadith = (n: string) => getData<Hadith>(`hadith/${encodeURIComponent(n)}.json`);
 export const getCities = () => getData<Record<string, City>>("cities.json");
-export const getMap = () => getData<MapData>("base-map.json");
 export const getSpread = () => getData<Tabaqa[]>("spread.json");
 export const getNarrator = (id: string) => getData<Narrator>(`narrators/${encodeURIComponent(id)}.json`);

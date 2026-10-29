@@ -19,6 +19,7 @@ Usage:
 import argparse
 import collections
 import json
+import os
 import re
 import sqlite3
 import sys
@@ -483,7 +484,9 @@ DEFAULT_JOURNEYS = [
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--db", required=True, help="isnady.db with Sahih al-Bukhari and the Taqrib imported")
+    default_db = os.path.join(os.environ.get("LOCALAPPDATA", os.path.expanduser("~")), "isnady", "isnady.db")
+    ap.add_argument("--db", default=default_db,
+                    help="isnady.db with Sahih al-Bukhari and the Taqrib imported (default: isnady's data folder)")
     ap.add_argument("--out", required=True, help="output JSON, e.g. public/data/map.json")
     ap.add_argument("--journeys", help='JSON list of {"number": 1, "title": "..."}; titles are quoted from the hadith text')
     args = ap.parse_args()

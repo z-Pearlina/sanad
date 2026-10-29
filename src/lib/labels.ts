@@ -85,3 +85,23 @@ export function hadithCount(n: number) {
   const mod = n % 100;
   return `${n} ${mod >= 3 && mod <= 10 ? "أحاديث" : "حديثاً"}`;
 }
+
+export type Forms = { one: string; two: string; few: string; many: string; hundred: string };
+
+/** Nouns counted on the narrator page. */
+export const NOUNS = {
+  hadith: { one: "حديث", two: "حديثان", few: "أحاديث", many: "حديثاً", hundred: "حديث" },
+  shaykh: { one: "شيخ", two: "شيخان", few: "شيوخ", many: "شيخاً", hundred: "شيخ" },
+  tilmidh: { one: "تلميذ", two: "تلميذان", few: "تلاميذ", many: "تلميذاً", hundred: "تلميذ" },
+  balad: { one: "بلد", two: "بلدان", few: "بلدان", many: "بلداً", hundred: "بلد" },
+} satisfies Record<string, Forms>;
+
+/** The noun after a number printed on its own: 1 حديث، 2 حديثان، 5 أحاديث، 12 حديثاً، 100 حديث. */
+export function nounFor(n: number, f: Forms) {
+  if (n === 1) return f.one;
+  if (n === 2) return f.two;
+  const r = n % 100;
+  if (r >= 3 && r <= 10) return f.few;
+  if (r <= 2) return f.hundred;
+  return f.many;
+}

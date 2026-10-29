@@ -43,9 +43,6 @@ export type Hadith = {
 
 export type City = { ar: string; lat: number; lon: number; kind: "city" | "region" };
 
-// public/data/map.json: the base map projected at build time (scripts/build_map.mjs)
-export type MapData = { w: number; h: number; land: string; frame: string; cities: Record<string, [number, number]> };
-
 export type Tabaqa = {
   tabaqa: number;
   ordinal: string;

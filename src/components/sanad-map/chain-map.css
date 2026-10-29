@@ -10,6 +10,7 @@
 @media (max-width: 1023px) {
   .sanad-map.sm-embed { --sanad-map-height: 56svh; }
 }
+.sanad-map.sm-embed.sm-embed-small { --sanad-map-height: min(58svh, 520px); }
 .sanad-map.sm-embed .sm-tools { top: 12px; left: 12px; }
 .sanad-map.sm-embed .sm-zoom { flex-direction: column; }
 .sanad-map.sm-embed .sm-zoom button + button { border-top: 1px solid var(--sm-khatt); border-right: 0; }
