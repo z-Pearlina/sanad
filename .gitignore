@@ -44,7 +44,8 @@ next-env.d.ts
 CLAUDE.md
 CLAUDE.local.md
 .claude/
-ayati.zip
+AGENTS.md
+*.zip
 data-src/
 .venv-isnady/
 __pycache__/
