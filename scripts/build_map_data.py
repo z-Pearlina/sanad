@@ -150,6 +150,36 @@ COMPANION_NAME_HOMES = {"أنس بن مالك بن النضر": "basra", "عبد
 
 BUKHARI_KEY = "taqrib:5727"
 
+
+def home_of(key: str, name: str):
+    """Where a narrator lived, the one place both data scripts take a home from.
+
+    Returns (place id or None, manual, nisba): the last city nisba in the name
+    part of the Taqrib entry; for the Companions and frequent narrators who
+    carry none, the home from COMPANION_HOMES / COMPANION_NAME_HOMES, marked
+    manual (shown with «موطنه من المشهور في التراجم»); al-Bukhari is from Bukhara.
+    """
+    for prefix in COMPANION_NAMES:
+        if name.startswith(prefix):
+            return COMPANION_NAME_HOMES[prefix], True, None
+    if key in COMPANION_HOMES:
+        return COMPANION_HOMES[key], True, None
+    hits = [w for w in name_part(name) if w in NISBA]
+    if hits:
+        return NISBA[hits[-1]], False, hits[-1]
+    if key == BUKHARI_KEY:
+        return "bukhara", False, None
+    return None, False, None
+
+
+def generation_of(name: str, tabaqa, rank):
+    """(tabaqa, rank), with the Companions whose generation the parser missed put in the first."""
+    if tabaqa is None and (rank == 1 or "صحبة" in name[:200]):
+        tabaqa, rank = 1, 1
+    if any(name.startswith(prefix) for prefix in COMPANION_NAMES):
+        tabaqa, rank = 1, rank or 1
+    return tabaqa, rank
+
 TRANSMISSION = {
     "haddathana": "حدثنا", "haddathani": "حدثني", "akhbarana": "أخبرنا", "akhbarani": "أخبرني",
     "'an": "عن", "sami'tu": "سمعت", "sami'a": "سمع", "anna": "أن", "qala": "قال",
@@ -252,27 +282,30 @@ def build(db_path: str) -> dict:
     by_key = {p["key"]: pid for pid, p in persons.items()}
     manual = set()
     for pid, p in persons.items():
-        if p["key"] in COMPANION_HOMES:
-            p["city"] = COMPANION_HOMES[p["key"]]
+        p["city"], is_manual, _ = home_of(p["key"], p["name"])
+        if is_manual:
             manual.add(pid)
-        else:
-            hits = [w for w in name_part(p["name"]) if w in NISBA]
-            p["city"] = NISBA[hits[-1]] if hits else None
-        companion = p.get("rank") == 1 or "صحبة" in p["name"][:200]
-        if p.get("t") is None and companion:
-            p["t"] = 1
-            p["rank"] = 1
-    for prefix in COMPANION_NAMES:
-        for pid, p in persons.items():
-            if p["name"].startswith(prefix):
-                p["t"] = 1
-                p["rank"] = p.get("rank") or 1
-                p["city"] = COMPANION_NAME_HOMES[prefix]
-                manual.add(pid)
+        t, rank = generation_of(p["name"], p.get("t"), p.get("rank"))
+        if (t, rank) != (p.get("t"), p.get("rank")):
+            p["t"], p["rank"] = t, rank
 
     bukhari = by_key[BUKHARI_KEY]
-    persons[bukhari]["city"] = "bukhara"
 
+    display, occurrences = display_names(db, persons, bukhari)
+
+    # spread: every Taqrib narrator whose entry gives a generation and whose
+    # nisba names a place. Hand-assigned homes are left out, so the circles
+    # match the caption on the map.
+    spread = collections.defaultdict(collections.Counter)
+    for pid, p in persons.items():
+        if p.get("t0") and p.get("city") and pid not in manual:
+            spread[p["t0"]][p["city"]] += 1
+
+    return build_rest(db, persons, display, occurrences, manual, bukhari, spread)
+
+
+def display_names(db, persons, bukhari):
+    """Short names as Bukhari's narrators actually use them (pid -> name), and how often each occurs."""
     # display names: the form Bukhari's narrators actually use
     raws = collections.defaultdict(collections.Counter)
     occurrences = collections.Counter()
@@ -328,15 +361,10 @@ def build(db_path: str) -> dict:
         if shared[name] > 1 and len(name.split()) == 1:
             display[pid] = taqrib_short(pid)
     display[bukhari] = "البخاري"
+    return display, occurrences
 
-    # spread: every Taqrib narrator whose entry gives a generation and whose
-    # nisba names a place. Hand-assigned homes are left out, so the circles
-    # match the caption on the map.
-    spread = collections.defaultdict(collections.Counter)
-    for pid, p in persons.items():
-        if p.get("t0") and p.get("city") and pid not in manual:
-            spread[p["t0"]][p["city"]] += 1
 
+def build_rest(db, persons, display, occurrences, manual, bukhari, spread):
     # chains
     chains = []
     for iid, hid, ordinal in db.execute("SELECT id, hadith_id, ordinal FROM isnads"):

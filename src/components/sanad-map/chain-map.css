@@ -1,0 +1,26 @@
+/* The map inside a page (hadith page, narrator page): the same leaf as the
+   home map, set in the page instead of filling the screen. Only placement
+   changes here; colours come from sanad-map.css. */
+
+.sanad-map.sm-embed {
+  --sanad-map-height: min(66svh, 640px);
+  min-height: 340px;
+  border: 1px solid var(--sm-khatt);
+}
+@media (max-width: 1023px) {
+  .sanad-map.sm-embed { --sanad-map-height: 56svh; }
+}
+.sanad-map.sm-embed .sm-tools { top: 12px; left: 12px; }
+.sanad-map.sm-embed .sm-zoom { flex-direction: column; }
+.sanad-map.sm-embed .sm-zoom button + button { border-top: 1px solid var(--sm-khatt); border-right: 0; }
+.sanad-map.sm-embed .sm-hint {
+  bottom: 14px; right: 50%; transform: translateX(50%);
+  white-space: nowrap; max-width: calc(100% - 32px);
+}
+/* the cities are for orientation only here */
+.sanad-map.sm-embed .sm-city { cursor: default; pointer-events: none; }
+.sanad-map.sm-embed .sm-svg { cursor: grab; }
+
+/* a narrator pointed at in the text, the chain column or the timeline */
+.sanad-map .sm-j-node.sm-focus circle.sm-r { stroke-width: 4.4; }
+.sanad-map .sm-j-node.sm-focus text.sm-nm { fill: var(--sm-nila); }

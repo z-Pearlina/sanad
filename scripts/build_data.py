@@ -6,6 +6,9 @@ Usage:
 isnady.db is produced by the isnady CLI (see README). Only the Python
 standard library is used, so the output can be regenerated anywhere and is
 committed to the repository (the static host never runs Python).
+
+Places, homes, generations and short names come from build_map_data.py, the
+script behind the home map, so every map and page of the site agrees.
 """
 
 from __future__ import annotations
@@ -20,11 +23,13 @@ import sys
 from collections import Counter, defaultdict
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from build_map_data import CITIES as PLACES, display_names, generation_of, home_of  # noqa: E402
+
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_DB = Path(os.environ.get("LOCALAPPDATA", Path.home())) / "isnady" / "isnady.db"
 DEFAULT_TAQRIB = ROOT / "data-src/isnady-data/rijal/sunni/taqrib_al_tahdhib_ibn_hajar_al_asqalani.md"
 BOOK_TITLES = ROOT / "scripts/bukhari_books_ar.json"
-SAHABA_HOMES = ROOT / "scripts/sahaba_homes.json"  # reviewed homes of Companions without a city nisba
 
 # Featured hadiths (reviewed): every narrator identified, confidence >= 0.8, three cities or more,
 # short and well known. Hadith 1 is kept first although its chain has two cities only.
@@ -53,64 +58,6 @@ def norm(text: str) -> str:
     t = re.sub("[آأإٱ]", "ا", t)
     return t.replace("ى", "ي").replace("ة", "ه")
 
-
-# ---------------------------------------------------------------- cities
-
-# key: (Arabic name, lat, lon, kind)
-CITIES = {
-    "madina": ("المدينة", 24.47, 39.61, "city"),
-    "makka": ("مكة", 21.42, 39.83, "city"),
-    "taif": ("الطائف", 21.27, 40.42, "city"),
-    "yamama": ("اليمامة", 24.63, 46.72, "city"),
-    "sanaa": ("صنعاء", 15.37, 44.19, "city"),
-    "yaman": ("اليمن", 15.0, 45.5, "region"),
-    "kufa": ("الكوفة", 32.03, 44.40, "city"),
-    "basra": ("البصرة", 30.50, 47.78, "city"),
-    "baghdad": ("بغداد", 33.31, 44.37, "city"),
-    "wasit": ("واسط", 32.19, 46.30, "city"),
-    "mawsil": ("الموصل", 36.34, 43.13, "city"),
-    "jazira": ("الجزيرة", 36.2, 40.8, "region"),
-    "harran": ("حران", 36.86, 39.03, "city"),
-    "sham": ("الشام", 34.2, 37.6, "region"),
-    "dimashq": ("دمشق", 33.51, 36.29, "city"),
-    "hims": ("حمص", 34.73, 36.72, "city"),
-    "quds": ("بيت المقدس", 31.78, 35.23, "city"),
-    "ramla": ("الرملة", 31.93, 34.87, "city"),
-    "asqalan": ("عسقلان", 31.67, 34.57, "city"),
-    "ayla": ("أيلة", 29.53, 35.01, "city"),
-    "misr": ("مصر", 30.01, 31.23, "city"),
-    "tinnis": ("تنيس", 31.20, 32.23, "city"),
-    "rayy": ("الري", 35.59, 51.44, "city"),
-    "isbahan": ("أصبهان", 32.65, 51.67, "city"),
-    "khurasan": ("خراسان", 36.0, 59.5, "region"),
-    "naysabur": ("نيسابور", 36.21, 58.80, "city"),
-    "marw": ("مرو", 37.66, 62.19, "city"),
-    "harat": ("هراة", 34.35, 62.20, "city"),
-    "balkh": ("بلخ", 36.76, 66.90, "city"),
-    "baghlan": ("بغلان", 36.13, 68.70, "city"),
-    "bukhara": ("بخارى", 39.77, 64.42, "city"),
-}
-
-# nisba word (normalized, with the article) -> city key
-NISBAS = {
-    "المدني": "madina", "المديني": "madina", "المكي": "makka", "الطائفي": "taif",
-    "اليمامي": "yamama", "الصنعاني": "sanaa", "اليماني": "yaman",
-    "الكوفي": "kufa", "البصري": "basra", "البغدادي": "baghdad", "الواسطي": "wasit",
-    "الموصلي": "mawsil", "الجزري": "jazira", "الحراني": "harran",
-    "الشامي": "sham", "الدمشقي": "dimashq", "الحمصي": "hims", "المقدسي": "quds",
-    "الرملي": "ramla", "العسقلاني": "asqalan", "الايلي": "ayla",
-    "المصري": "misr", "التنيسي": "tinnis",
-    "الرازي": "rayy", "الاصبهاني": "isbahan", "الخراساني": "khurasan",
-    "النيسابوري": "naysabur", "المروزي": "marw", "الهروي": "harat", "البلخي": "balkh",
-    "البغلاني": "baghlan", "البخاري": "bukhara",
-}
-NISBAS = {norm(k): v for k, v in NISBAS.items()}
-
-# The name part of an entry ends where Ibn Hajar starts quoting, grading or dating.
-# Words are in normalized form (see norm): ه for ة, ي for ى, plain alef.
-NAME_END = re.compile(
-    r"\s(?:و?قال|مات|و?روي|روايه|عن|صحابي|صحابيه|صحبه|رؤيه|ثقه|صدوق|مقبول|ضعيف|مجهول|مجهوله|متروك|لا يعرف"
-    r"|من\s+(?:ال)?(?:اولي|ثانيه|ثالثه|رابعه|خامسه|سادسه|سابعه|ثامنه|تاسعه|عاشره|حاديه|صغار|كبار))(?!\S)")
 
 # ---------------------------------------------------------------- tabaqat
 
@@ -175,18 +122,6 @@ def read_taqrib(path: Path) -> dict[str, str]:
     return out
 
 
-def city_of(entry: str) -> tuple[str | None, str | None]:
-    """City key and the nisba word it came from: the last city nisba in the name part."""
-    n = norm(entry)
-    m = NAME_END.search(n)
-    name_part = n[: m.start()] if m else n
-    found = None
-    for word in name_part.split():
-        if word in NISBAS:
-            found = word
-    return (NISBAS[found], found) if found else (None, None)
-
-
 # ---------------------------------------------------------------- build
 
 def write(path: Path, data) -> None:
@@ -236,8 +171,7 @@ def main() -> None:
     q = lambda sql, *a: db.execute(sql, a).fetchall()  # noqa: E731
     taqrib = read_taqrib(args.taqrib)
     books_ar = json.loads(BOOK_TITLES.read_text(encoding="utf-8"))["titles"]
-    sahaba_homes = {k: v[0] for k, v in json.loads(SAHABA_HOMES.read_text(encoding="utf-8")).items()
-                    if not k.startswith("_")}
+    place_name = {cid: name for cid, name, *_ in PLACES}
 
     # ---- persons
     verdict = {pid: (phrase, rank) for pid, phrase, rank in q(
@@ -249,21 +183,28 @@ def main() -> None:
         no = taqrib_no(key)
         if no is None:
             continue
-        entry = taqrib.get(no, "")
-        city, nisba = city_of(entry)
-        city_src = "nisba" if city else None
-        if not city and no in sahaba_homes:
-            city, city_src = sahaba_homes[no], "reviewed"
+        city, manual, nisba = home_of(key, name or "")
         phrase, rank = verdict.get(pid, (None, None))
-        p = {"id": no, "name": name, "kunya": kunya, "laqab": laqab, "death": death, "tabaqa": tabaqa,
+        t, rank = generation_of(name or "", tabaqa, rank)
+        p = {"id": no, "name": name, "short": None, "kunya": kunya, "laqab": laqab, "death": death, "tabaqa": t,
              "rank": rank, "group": RANK_GROUP.get(rank, "see") if rank else "see", "phrase": phrase,
-             "city": city, "citySrc": city_src, "nisba": nisba, "entry": entry}
+             "city": city, "citySrc": ("manual" if manual else "nisba") if city else None, "nisba": nisba,
+             "entry": taqrib.get(no, ""), "t0": tabaqa}
         persons[pid] = p
         by_no[no] = p
     bukhari = by_no[BUKHARI_TAQRIB]
+    # the short names of the home map ("ابن عيينة", "الحميدي")
+    bukhari_pid = next(pid for pid, p in persons.items() if p is bukhari)
+    display, _ = display_names(db, {pid: {"name": p["name"] or ""} for pid, p in persons.items()}, bukhari_pid)
+    for pid, short in display.items():
+        if pid in persons:
+            persons[pid]["short"] = short
 
     def brief(p: dict) -> dict:
-        return {k: p[k] for k in ("id", "name", "death", "tabaqa", "rank", "group", "phrase", "city")}
+        out = {k: p[k] for k in ("id", "name", "short", "death", "tabaqa", "rank", "group", "phrase", "city")}
+        if p["citySrc"] == "manual":
+            out["cityManual"] = True  # «موطنه من المشهور في التراجم»
+        return out
 
     # ---- sections and hadith order
     hadiths = q("select id, number, number_sort, section_number from hadiths order by number_sort")
@@ -370,28 +311,33 @@ def main() -> None:
         p = by_no[no]
         name_of = lambda n: by_no[n]["name"] if n in by_no else None  # noqa: E731
         city_of_no = lambda n: by_no[n]["city"] if n in by_no else None  # noqa: E731
+        short_of = lambda n: by_no[n]["short"] if n in by_no else None  # noqa: E731
         write(out / "narrators" / f"{no}.json", {
-            **{k: v for k, v in p.items() if k != "nisba"},
+            **{k: v for k, v in p.items() if k not in ("nisba", "t0")},
             "nisbaWord": p["nisba"],
             "count": len(u["hadiths"]),
             "hadiths": u["hadiths"],
-            "teachers": [{"id": t, "name": name_of(t), "city": city_of_no(t), "count": c} for t, c in u["teachers"].most_common()],
-            "students": [{"id": s, "name": name_of(s), "city": city_of_no(s), "count": c} for s, c in u["students"].most_common()],
+            "teachers": [{"id": t, "name": name_of(t), "short": short_of(t), "city": city_of_no(t), "count": c}
+                         for t, c in u["teachers"].most_common()],
+            "students": [{"id": s, "name": name_of(s), "short": short_of(s), "city": city_of_no(s), "count": c}
+                         for s, c in u["students"].most_common()],
         })
-        index.append({"id": no, "name": p["name"], "kunya": p["kunya"], "laqab": p["laqab"],
+        index.append({"id": no, "name": p["name"], "short": p["short"], "kunya": p["kunya"], "laqab": p["laqab"],
                       "nisba": p["nisba"], "death": p["death"], "group": p["group"], "count": len(u["hadiths"])})
     index.sort(key=lambda r: -r["count"])
     write(out / "narrators-index.json", index)
 
-    # ---- spread map: every Taqrib narrator with a tabaqa and a city nisba
+    # ---- tabaqat: every Taqrib narrator with a tabaqa (as the parser read it) and a city nisba,
+    # the same count as the circles of the home map
     spread = []
     for t, (ordinal, desc, example, era) in TABAQAT.items():
-        group = [p for p in by_no.values() if p["tabaqa"] == t]
+        group = [p for p in by_no.values() if p["t0"] == t]
         cities = Counter(p["city"] for p in group if p["city"] and p["citySrc"] == "nisba")
         spread.append({"tabaqa": t, "ordinal": ordinal, "desc": desc, "example": example, "era": era,
                        "total": len(group), "located": sum(cities.values()), "cities": dict(cities.most_common())})
     write(out / "spread.json", spread)
-    write(out / "cities.json", {k: {"ar": a, "lat": la, "lon": lo, "kind": kind} for k, (a, la, lo, kind) in CITIES.items()})
+    write(out / "cities.json", {cid: {"ar": name, "lat": lat, "lon": lon, "kind": "region" if region else "city"}
+                                for cid, name, lat, lon, region in PLACES})
     write(out / "sections.json", sections)
 
     # ---- featured hadiths
@@ -429,14 +375,14 @@ def main() -> None:
         "narrators": len(chain_people),
         "narratorsWithTabaqa": sum(1 for p in chain_people if p["tabaqa"]),
         "narratorsWithNisbaCity": sum(1 for p in chain_people if p["citySrc"] == "nisba"),
-        "narratorsWithReviewedCity": sum(1 for p in chain_people if p["citySrc"] == "reviewed"),
+        "narratorsWithManualHome": sum(1 for p in chain_people if p["citySrc"] == "manual"),
         "narratorsWithDeath": sum(1 for p in chain_people if p["death"]),
         "narratorsWithRank": sum(1 for p in chain_people if p["rank"]),
         "taqribNarrators": len(by_no),
         "taqribLocated": sum(s_["located"] for s_ in spread),
         "books": len(sections),
         "hadithsWithoutBook": sum(1 for v in sec_of.values() if v == 0),
-        "cities": len(CITIES),
+        "cities": len(PLACES),
         "featured": len(FEATURED),
     })
 
@@ -446,7 +392,7 @@ def main() -> None:
           f"({stats['known_all'] / stats['isnads']:.0%})")
     print(f"narrators in Bukhari chains {len(used)}; Taqrib narrators with tabaqa and city {located}")
     for s in spread:
-        top = ", ".join(f"{CITIES[c][0]} {n}" for c, n in list(s["cities"].items())[:4])
+        top = ", ".join(f"{place_name[c]} {n}" for c, n in list(s["cities"].items())[:4])
         print(f"  tabaqa {s['tabaqa']:>2}: {s['located']:>4}/{s['total']:<4} {top}")
     print(f"books {len(sections)}; hadiths without a book {sum(1 for v in sec_of.values() if v == 0)}")
 

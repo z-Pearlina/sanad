@@ -8,12 +8,14 @@ export type Link = {
   conf: number | null; // isnady match confidence
   id: string | null; // Taqrib number; null when the name was not identified
   name?: string;
+  short?: string | null; // the short name of the home map ("ابن عيينة")
   death?: number | null;
   tabaqa?: number | null;
   rank?: number | null;
   group?: Group;
   phrase?: string | null; // Ibn Hajar's words, as extracted
   city?: string | null;
+  cityManual?: boolean; // home from the well-known biographies (no city nisba)
 };
 
 // [text, kind, narrator id]: kind "name" | "tr" (transmission word) | "t" (other)
@@ -55,11 +57,12 @@ export type Tabaqa = {
   cities: Record<string, number>;
 };
 
-export type NarratorRef = { id: string; name: string | null; city: string | null; count: number };
+export type NarratorRef = { id: string; name: string | null; short: string | null; city: string | null; count: number };
 
 export type Narrator = {
   id: string;
   name: string;
+  short: string | null;
   kunya: string | null;
   laqab: string | null;
   death: number | null;
@@ -68,7 +71,7 @@ export type Narrator = {
   group: Group;
   phrase: string | null;
   city: string | null;
-  citySrc: "nisba" | "reviewed" | null;
+  citySrc: "nisba" | "manual" | null;
   nisbaWord: string | null;
   entry: string;
   count: number;
