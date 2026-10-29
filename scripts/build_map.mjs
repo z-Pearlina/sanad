@@ -1,7 +1,7 @@
 // Project the base map once, at data-build time, so the site ships a ready
 // SVG path instead of d3 + topojson + 0.5 MB of world data.
 // Usage: node scripts/build_map.mjs   (after scripts/build_data.py wrote cities.json)
-// Writes public/data/map.json: { w, h, land, frame, cities: { key: [x, y] } }
+// Writes public/data/base-map.json: { w, h, land, frame, cities: { key: [x, y] } }
 import { readFileSync, writeFileSync } from "node:fs";
 import { geoConicEqualArea, geoGraticule, geoPath } from "d3-geo";
 import { feature } from "topojson-client";
@@ -30,5 +30,5 @@ const out = {
     Object.entries(cities).map(([key, c]) => [key, projection([c.lon, c.lat]).map(round)]),
   ),
 };
-writeFileSync(new URL("../public/data/map.json", import.meta.url), JSON.stringify(out));
+writeFileSync(new URL("../public/data/base-map.json", import.meta.url), JSON.stringify(out));
 console.log(`map ${WIDTH}x${height}, land path ${(out.land.length / 1024).toFixed(0)} KB, ${Object.keys(out.cities).length} cities`);

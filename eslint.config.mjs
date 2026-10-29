@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // local data sources, not part of the site (also ignored by git)
+    "data-src/**",
+    ".venv-isnady/**",
   ]),
 ]);
 

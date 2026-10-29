@@ -2,10 +2,10 @@ import type { Metadata, Viewport } from "next";
 import "@fontsource/amiri/400.css";
 import "@fontsource/amiri/700.css";
 import "@fontsource/ibm-plex-sans-arabic/400.css";
+import "@fontsource/ibm-plex-sans-arabic/500.css";
 import "@fontsource/ibm-plex-sans-arabic/600.css";
 import "@fontsource/aref-ruqaa/700.css";
 import "./globals.css";
-import SiteHeader from "@/components/SiteHeader";
 
 export const metadata: Metadata = {
   title: "سَنَد · رجال صحيح البخاري في الزمان والمكان",
@@ -19,13 +19,12 @@ export const viewport: Viewport = {
   ],
 };
 
+// The home page is the full-screen map with its own masthead; the other pages
+// get the site header from app/(site)/layout.tsx.
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="ar" dir="rtl" className="h-full">
-      <body className="min-h-full flex flex-col bg-raqq text-midad">
-        <SiteHeader />
-        <div className="flex-1">{children}</div>
-      </body>
+      <body className="min-h-full flex flex-col bg-raqq text-midad">{children}</body>
     </html>
   );
 }
