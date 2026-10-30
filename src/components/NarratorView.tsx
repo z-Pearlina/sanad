@@ -90,7 +90,7 @@ export default function NarratorView({ id }: { id: string }) {
               <>
                 {deathText(p.death)}
                 <Link href={`/time/?id=${p.id}`} className="block text-sm text-nila underline underline-offset-4 phone:inline-flex phone:min-h-11 phone:items-center">
-                  موضعه على محور الزمان
+                  موضعه في جدول الوفيات
                 </Link>
               </>
             ) : (

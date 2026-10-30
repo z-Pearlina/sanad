@@ -248,6 +248,268 @@ input:focus-visible,
   }
 }
 
+/* ---------------------------------------------------------------- the deaths table (TimeView.tsx)
+   A ruled manuscript table: empty cells keep only a faint rule, counted ones are washed in ochre. */
+.deaths {
+  border-collapse: separate;
+  border-spacing: 3px;
+}
+.deaths th,
+.deaths td {
+  padding: 0;
+  font-weight: 400;
+}
+.deaths-lit {
+  background: color-mix(in srgb, var(--nila) 16%, transparent);
+}
+.deaths-cell,
+.deaths-empty {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 38px;
+}
+.deaths-cell {
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+.deaths-cell[aria-pressed="true"] {
+  outline: 2px solid var(--nila);
+  outline-offset: 1px;
+}
+.deaths-empty {
+  border: 1px solid color-mix(in srgb, var(--khatt) 55%, transparent);
+}
+.deaths-eras th {
+  padding-inline: 2px;
+  font-size: 12px;
+  color: var(--midad-soft);
+}
+.deaths-eras th span {
+  display: block;
+  border-bottom: 1px solid var(--khatt);
+  padding-bottom: 2px;
+}
+.deaths-row {
+  text-align: start;
+  padding-inline-end: 8px !important;
+}
+.deaths-row .naskh {
+  line-height: 1.3;
+}
+/* the last band leaves room for the note on al-Bukhari's death */
+.deaths-eras th:last-child span {
+  padding-inline-end: 112px;
+}
+.deaths-col {
+  position: relative;
+  height: 112px;
+  vertical-align: bottom;
+}
+.deaths-col button {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: stretch;
+  width: 100%;
+  height: 92px;
+  font-size: 11px;
+  color: var(--midad-soft);
+  cursor: pointer;
+}
+.deaths-col button span {
+  text-align: center;
+}
+.deaths-col button:hover .deaths-bar,
+.deaths-col button.is-on .deaths-bar {
+  background: var(--nila);
+}
+.deaths-bar {
+  display: block;
+  margin-inline: 3px;
+  background: color-mix(in srgb, var(--mughra) 62%, transparent);
+  transform-origin: bottom;
+  transition: height 0.2s;
+}
+.deaths-col b {
+  display: block;
+  height: 18px;
+  font-size: 12px;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+  color: var(--midad-soft);
+  text-align: center;
+}
+/* al-Bukhari's death, six tenths of the way along the last decade */
+.deaths-bukhari {
+  position: absolute;
+  top: -22px;
+  bottom: 18px;
+  right: 60%;
+  border-right: 1px dashed var(--zinjafr);
+  pointer-events: none;
+}
+.deaths-bukhari em {
+  position: absolute;
+  top: -2px;
+  left: -3px;
+  font-size: 12px;
+  font-style: normal;
+  white-space: nowrap;
+  color: var(--zinjafr);
+}
+.deaths-tip {
+  position: absolute;
+  z-index: 20;
+  transform: translate(-50%, calc(-100% - 8px));
+  padding: 3px 9px;
+  font-size: 13px;
+  white-space: nowrap;
+  background: var(--midad);
+  color: var(--raqq);
+  pointer-events: none;
+}
+@keyframes deaths-fill {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+}
+@keyframes deaths-rise {
+  from {
+    transform: scaleY(0);
+  }
+}
+.deaths-wait .deaths-cell,
+.deaths-wait .deaths-bar {
+  opacity: 0;
+}
+.deaths-run .deaths-cell {
+  animation: deaths-fill 0.28s ease-out both;
+  animation-delay: calc(var(--d) * 48ms);
+}
+.deaths-run .deaths-bar {
+  animation: deaths-rise 0.28s ease-out both;
+  animation-delay: calc(var(--d) * 48ms);
+}
+/* the table turned on its side for a phone: cells of at least 34px, nothing wider than the screen */
+.deaths-tall {
+  border-spacing: 0;
+}
+.deaths-tall thead th {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  height: 44px;
+  padding-top: 12px;
+  vertical-align: bottom;
+  font-size: 10px;
+  line-height: 1.15;
+  color: var(--midad);
+  background: var(--raqq);
+  border-bottom: 1px solid var(--khatt);
+}
+.deaths-tall .deaths-cell,
+.deaths-tall .deaths-empty {
+  height: 34px;
+}
+.deaths-tall .deaths-cell {
+  box-shadow: inset 0 0 0 1px var(--raqq);
+}
+.deaths-tall .deaths-cell[aria-pressed="true"] {
+  outline-offset: -2px;
+}
+.deaths-tall .deaths-empty {
+  border-width: 0 0 1px 1px;
+}
+.deaths-decade {
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--midad-soft);
+}
+.deaths-total {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 34px;
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.deaths-total.is-on {
+  outline: 2px solid var(--nila);
+  outline-offset: -2px;
+}
+.deaths-era-row td {
+  padding: 8px 2px 2px;
+  font-size: 11px;
+  color: var(--midad-soft);
+  border-bottom: 1px solid var(--khatt);
+}
+.deaths-bukhari-row td {
+  padding: 3px 2px;
+  font-size: 11px;
+  color: var(--zinjafr);
+  border-top: 1px dashed var(--zinjafr);
+}
+.deaths-peek {
+  position: fixed;
+  z-index: 30;
+  inset: auto 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 44px;
+  padding: 6px 12px;
+  font-size: 14px;
+  text-align: start;
+  background: var(--raqq);
+  border: 1px solid var(--khatt);
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.18);
+}
+.deaths-sheet {
+  position: fixed;
+  z-index: 40;
+  inset: auto 0 0;
+  display: flex;
+  flex-direction: column;
+  max-height: 72svh;
+  background: var(--raqq);
+  border-top: 1px solid var(--khatt);
+  box-shadow: 0 -8px 24px rgb(0 0 0 / 0.2);
+}
+.deaths-sheet-head {
+  position: relative;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 14px 16px 2px;
+  touch-action: none;
+  cursor: grab;
+}
+.deaths-sheet-head > i {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  width: 46px;
+  height: 5px;
+  margin-left: -23px;
+  border-radius: 3px;
+  background: var(--khatt);
+}
+.deaths-sheet-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 0 16px calc(18px + env(safe-area-inset-bottom, 0px));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
 /* The narrator the hadith map is drawing: a ring breathes around his dara (Dara lit). */
 .dara-lit {
   transform-box: fill-box;

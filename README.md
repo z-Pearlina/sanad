@@ -39,7 +39,7 @@
 <td valign="top"><img src="docs/narrator.jpg" alt="صفحة علقمة بن وقاص"><br><b>صفحة الراوي</b><br>ترجمته كاملة وتحت لفظ الحكم خط بلون مرتبته، وأعداده، وخريطة صلاته بشيوخه وتلاميذه، وأحاديثه.</td>
 </tr>
 <tr>
-<td valign="top"><img src="docs/time.jpg" alt="صفحة الزمان"><br><b>الزمان</b><br>كل راوٍ له سنة وفاة معروفة دارة على محور من 0 إلى 260هـ، صف لكل إقليم، بلون مرتبته وحجم بعدد أسانيده. اسحب على المحور لتحديد فترة، وابحث عن راوٍ لترى موضعه.</td>
+<td valign="top"><img src="docs/time.jpg" alt="جدول الوفيات في صفحة الزمان"><br><b>الزمان</b><br>جدول الوفيات: كم توفي في كل عقد وكل إقليم، وجملة خلاصة تُبنى من الأرقام. اضغط على خانة لترى رجالها بحكم ابن حجر، وابحث عن راوٍ لتصل إلى خانته.</td>
 <td valign="top"><img src="docs/insights.jpg" alt="صفحة رؤى من البيانات"><br><b>رؤى من البيانات</b><br>أربعة أسئلة تجيب عنها الأرقام: تغيّر صيغ الأداء عبر الطبقات، ومواطن كل طبقة، وأطوال الأسانيد التامة، وأكثر الرواة صلات.</td>
 </tr>
 <tr>
@@ -104,7 +104,7 @@ flowchart LR
 - 45 سنداً لم يوجد نصها داخل نص الحديث فتُعرض بلا تلوين، و21 سنداً تعتمد على سند الحديث الذي قبلها. والتعاليق بعد المتن لا تستخرجها الأداة.
 - دوائر الخريطة لـ4,977 من رواة التقريب البالغين 8,824 (56%) ممن تدل نسبتهم على بلد، على 31 مدينة وإقليماً. وخطوطها من 21,783 صلة بين شيخ وتلميذه في أسانيد البخاري عُرف بلداهما.
 - 6 أحاديث لم تُنسب في البيانات إلى كتاب من كتب الصحيح الـ97.
-- سنوات الوفاة من استخراج آلي: 713 راوياً من 1,282 لهم سنة وفاة، ومن لا تُعرف وفاته لا يُقدَّر في صفحة الزمان. و8 منهم تقع وفاتهم في البيانات بعد 260هـ فيُعرضون في شريط بعد المحور، وقد يكون القرن فيها خطأ من الأداة حين يحذفه ابن حجر.
+- سنوات الوفاة من استخراج آلي: 713 راوياً من 1,282 لهم سنة وفاة، ومن لا تُعرف وفاته لا يُقدَّر في صفحة الزمان. و10 منهم تقع وفاتهم في البيانات بعد 259هـ فيضمهم العقد الأخير من الجدول، وقد يكون القرن فيها خطأ من الأداة حين يحذفه ابن حجر.
 
 ## التقنية
 
@@ -182,7 +182,7 @@ npm run data       # hadith and narrator files, the map, the insights, the searc
 - **Home map:** where the narrators of the six books lived, generation by generation, with the flow of transmission from teacher's city to student's city, and featured hadiths whose chains can be followed step by step.
 - **Hadith page:** the Arabic text (from the Ummah API) with transmission words marked; the chain told on the map from the Companion to al-Bukhari, lighting each narrator in the chain column and on the death-year timeline.
 - **Narrator page:** the full Taqrib entry, count-ups, a map of his teachers and students, and his hadiths.
-- **Time page:** every narrator with a known death year on an axis from 0 to 260 AH, in a row for each region; drag on the axis to pick a period.
+- **Time page:** a table of deaths, decade by decade and region by region, with a summary sentence built from the figures; a cell opens its narrators with Ibn Hajar's verdicts.
 - **Search:** one field that opens a hadith by number, finds narrators by name, and searches the hadith texts through an index split into small files, so only what the typed words need is loaded.
 - **Insights:** four questions answered from the data, with every figure computed: how the transmission words changed across the generations, where each generation lived, how many men stand in a full chain, and who is the most connected narrator. Also a table of books and an *order the chain* game.
 - **On phones:** the map fills the screen above a three-stop sheet, city names never overlap, the drawing is lighter, and maps inside pages open full screen. The desktop is untouched by any of it.
