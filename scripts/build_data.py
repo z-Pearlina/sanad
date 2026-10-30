@@ -24,7 +24,9 @@ from collections import Counter, defaultdict
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from build_map_data import CITIES as PLACES, REGIONS, display_names, generation_of, home_of, verdict_for  # noqa: E402
+from build_map_data import (  # noqa: E402
+    CITIES as PLACES, DEATH_FIXES, REGIONS, display_names, fixed_death, generation_of, home_of, verdict_for,
+)
 
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_DB = Path(os.environ.get("LOCALAPPDATA", Path.home())) / "isnady" / "isnady.db"
@@ -186,10 +188,12 @@ def main() -> None:
         city, manual, nisba = home_of(key, name or "")
         phrase, rank = verdict.get(pid, (None, None))
         t, rank = generation_of(name or "", tabaqa, rank)
-        p = {"id": no, "name": name, "short": None, "kunya": kunya, "laqab": laqab, "death": death, "tabaqa": t,
+        p = {"id": no, "name": name, "short": None, "kunya": kunya, "laqab": laqab, "death": fixed_death(no, death), "tabaqa": t,
              "rank": rank, "group": RANK_GROUP.get(rank, "see") if rank else "see", "phrase": phrase,
              "city": city, "citySrc": ("manual" if manual else "nisba") if city else None, "nisba": nisba,
              "entry": taqrib.get(no, ""), "t0": tabaqa}
+        if no in DEATH_FIXES:
+            p["deathFix"] = DEATH_FIXES[no][2]
         persons[pid] = p
         by_no[no] = p
     bukhari = by_no[BUKHARI_TAQRIB]
@@ -395,6 +399,8 @@ def main() -> None:
         "total": len(chain_people),
         "dated": len(dated),
         "regions": [{"id": rid, "name": name, "cities": cities} for rid, name, cities in REGIONS],
+        "fixes": [{"id": no, "n": by_no[no]["short"] or by_no[no]["name"], "from": was, "to": year, "why": why}
+                  for no, (was, year, why) in DEATH_FIXES.items()],
         "narrators": [{
             "id": p["id"], "n": p["short"] or p["name"], "y": p["death"], "t": p["tabaqa"], "g": p["group"], "v": verdict_for(p),
             "c": p["city"], **({"m": 1} if p["citySrc"] == "manual" else {}), "k": used[p["id"]]["chains"],

@@ -63,6 +63,7 @@ export type Narrator = {
   kunya: string | null;
   laqab: string | null;
   death: number | null;
+  deathFix?: string;
   tabaqa: number | null;
   rank: number | null;
   group: Group;

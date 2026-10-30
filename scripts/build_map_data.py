@@ -477,8 +477,30 @@ def journeys(db, persons, display, chains, manual, bukhari, wanted):
     return out
 
 
+# Death years corrected by hand, by Taqrib number: (year as imported, correct year, why).
+# Ibn Hajar usually drops the century and the importer adds it from the generation,
+# and a few years are misprinted in the text. Each was checked in the biographies.
+DEATH_FIXES = {
+    "2941": (174, 74, "في التقريب «سنة أربع وسبعين» بلا قرن، وقد مات في خلافة عبد الملك كما عند ابن حبان."),
+    "3067": (201, 221, "في نص التقريب تصحيف «إحدى وعسرين»، والصواب «إحدى وعشرين ومائتين»."),
+    "3980": (291, 191, "في التقريب «سنة إحدى وتسعين» بلا قرن، والمراد ومائة، فهو صاحب مالك."),
+    "6877": (115, 215, "في نص التقريب «خمس عشرة ومائة»، والصواب «ومائتين» كما عند ابن سعد، فهو شيخ البخاري."),
+    "7434": (282, 202, "في نص التقريب «اثنتين وثمانين»، والصواب «اثنتين ومائتين» كما في تهذيب الكمال."),
+}
+
+
+def fixed_death(taqrib_no, year):
+    fix = DEATH_FIXES.get(taqrib_no)
+    if not fix:
+        return year
+    if fix[0] != year:
+        raise ValueError(f"death year of {taqrib_no} changed in the data: {year}")
+    return fix[1]
+
+
 def death_years(db):
-    return {pid: (dy, note) for pid, dy, note in db.execute("SELECT id, death_year_ah, death_year_note FROM persons")}
+    return {pid: (fixed_death(key.split(":")[1], dy), note)
+            for pid, key, dy, note in db.execute("SELECT id, key, death_year_ah, death_year_note FROM persons")}
 
 
 # Complete chains (every narrator identified, every home known) that cross

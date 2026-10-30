@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import Dara from "@/components/Dara";
 import Salla from "@/components/Salla";
 import { GROUP_LABEL } from "@/lib/labels";
@@ -31,7 +32,8 @@ type MapFile = { tabaqat: { links: number }[] };
 
 const s = readData<Stats>("stats.json");
 const map = readData<MapFile>("map.json");
-const time = readData<{ total: number; dated: number; narrators: { y: number }[] }>("time.json");
+type DeathFix = { id: string; n: string; from: number; to: number; why: string };
+const time = readData<{ total: number; dated: number; fixes: DeathFix[]; narrators: { y: number }[] }>("time.json");
 const lateDeaths = time.narrators.filter((r) => r.y >= 260).length;
 const chainLinks = map.tabaqat.reduce((sum, t) => sum + t.links, 0);
 // Isolated left-to-right so the sign stays after the digits inside Arabic text.
@@ -154,8 +156,22 @@ export default function AboutPage() {
             راوٍ هي المرجع. ووسم «تعرّف آلي» يعني أن الأداة لم تقطع بصاحب الاسم.
           </li>
           <li>
-            سنوات الوفاة مستخرجة آلياً من التقريب، وابن حجر يحذف المائة غالباً، فقد تخطئ الأداة في قرنها. و{lateDeaths} رواة تقع
-            وفاتهم في البيانات بعد سنة 259هـ، فيضمهم العقد الأخير في جدول الوفيات.
+            سنوات الوفاة مستخرجة آلياً من التقريب، وابن حجر يحذف المائة غالباً فتقدّرها الأداة من طبقة الراوي. وقد قابلناها
+            بطبقات الرواة وشيوخهم وتلاميذهم وبنسخة ويكي مصدر من التقريب، فصُحّحت {time.fixes.length} سنوات بعد مراجعتها في كتب
+            التراجم:
+            <ul className="mt-2 list-disc space-y-1 ps-5">
+              {time.fixes.map((f) => (
+                <li key={f.id}>
+                  <Link href={`/narrator/?id=${f.id}`} className="text-nila underline underline-offset-4">
+                    {f.n}
+                  </Link>
+                  : {f.from}هـ في البيانات، والصواب {f.to}هـ. {f.why}
+                </li>
+              ))}
+            </ul>
+            <span className="mt-2 block">
+              ويضم العقد الأخير في جدول الوفيات {lateDeaths} رواة عاشوا بعد البخاري فتوفوا بعد سنة 259هـ.
+            </span>
           </li>
           <li>
             {s.isnadsNotLocated} سنداً لم يوجد نصه داخل نص الحديث فيُعرض بلا تلوين، و{s.isnadsWithNote} سنداً تعتمد على
