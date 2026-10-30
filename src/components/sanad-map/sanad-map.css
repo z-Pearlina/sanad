@@ -249,8 +249,16 @@
 .sanad-map .sm-j-card q { font-family: var(--sm-font-text); font-size: 18px; line-height: 1.6; quotes: "«" "»"; }
 .sanad-map .sm-j-card small { font-size: 12px; color: var(--sm-midad-soft); line-height: 1.6; }
 .sanad-map .sm-chain { list-style: none; margin: 0; padding: 0; display: grid; align-content: start; }
-.sanad-map .sm-panel.sm-journey-panel { overflow: hidden; }
-.sanad-map .sm-panel.sm-journey-panel .sm-chain { overflow: auto; min-height: 0; flex: 1 1 auto; padding-inline-end: 4px; }
+/* the title and controls stay put; the chain, the summary and the note scroll together under them,
+   so a short window never cuts any of it off (the whole panel scrolls if even that cannot fit) */
+.sanad-map .sm-panel.sm-journey-panel .sm-j-scroll {
+  flex: 1 1 auto; min-height: 96px; overflow: auto; overscroll-behavior: contain;
+  display: flex; flex-direction: column; gap: 14px; padding-inline-end: 4px;
+  scrollbar-width: thin; scrollbar-color: var(--sm-khatt) transparent;
+}
+.sanad-map .sm-j-scroll > * { flex: none; }
+.sanad-map .sm-j-scroll.sm-scrolled { -webkit-mask-image: linear-gradient(transparent 4px, #000 24px); mask-image: linear-gradient(transparent 4px, #000 24px); }
+.sanad-map .sm-j-sum:empty { display: none; }
 .sanad-map .sm-chain li { display: grid; grid-template-columns: 18px 1fr; gap: 0 10px; padding: 6px 0; opacity: 0.38; transition: opacity 0.4s; }
 .sanad-map .sm-chain li.sm-seen { opacity: 0.8; }
 .sanad-map .sm-chain li.sm-now { opacity: 1; }
@@ -338,6 +346,14 @@
   .sanad-map .sm-timeline { gap: 10px; padding: 8px 12px 10px; }
   .sanad-map .sm-eras { font-size: 10px; }
   .sanad-map .sm-title { font-size: 30px; }
+}
+
+/* short windows on wide screens (a laptop at 125–150%): a smaller wordmark and a tighter panel,
+   so a journey's summary and note fit under its controls */
+@media (max-height: 680px) and (min-width: 861px) {
+  .sanad-map .sm-wordmark { font-size: 44px; }
+  .sanad-map .sm-panel { top: 134px; max-height: calc(100% - 170px); padding: 16px 20px 14px; gap: 10px; }
+  .sanad-map .sm-panel.sm-journey-panel .sm-j-scroll { gap: 10px; }
 }
 
 /* phones and narrow windows: the panel becomes a bottom sheet */

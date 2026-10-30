@@ -856,6 +856,7 @@ export function mountSanadMap(
       <div><div class="sm-kicker">صحيح البخاري، رقم ${j.number}${link ? ` · <a class="sm-link" href="${esc(link)}" data-internal>صفحة الحديث</a>` : ""}</div>
       <h2 class="sm-title" style="font-size:26px">«${esc(j.title)}»</h2></div>
       <div class="sm-j-controls"></div>
+      <div class="sm-j-scroll">
       <ol class="sm-chain">
         ${j.prophet ? `<li class="sm-prophet sm-now"><span class="sm-dara sm-full sm-b-sahabi" aria-hidden="true"></span><div><div class="sm-who">النبي ﷺ</div></div></li>` : ""}
         ${j.nodes
@@ -871,8 +872,12 @@ export function mountSanadMap(
           .join("")}
       </ol>
       <div class="sm-j-sum"></div>
-      <p class="sm-note">تعرض الخريطة موطن كل راوٍ حسب نسبته في تقريب التهذيب، ومن لا نسبة له فبحسب المشهور في التراجم، لا المكان الذي سمع فيه الحديث. والأحكام بلفظ ابن حجر.</p>`;
+      <p class="sm-note">تعرض الخريطة موطن كل راوٍ حسب نسبته في تقريب التهذيب، ومن لا نسبة له فبحسب المشهور في التراجم، لا المكان الذي سمع فيه الحديث. والأحكام بلفظ ابن حجر.</p>
+      </div>`;
     panel.querySelector(".sm-back")?.addEventListener("click", () => endJourney(true));
+    // once the list has scrolled, fade its top edge so no half-cut line shows under the controls
+    const scroller = panel.querySelector<HTMLElement>(".sm-j-scroll");
+    scroller?.addEventListener("scroll", () => scroller.classList.toggle("sm-scrolled", scroller.scrollTop > 1), { passive: true });
     renderJourneyControls();
     wireSheet();
   }
@@ -919,10 +924,10 @@ export function mountSanadMap(
       li.classList.toggle("sm-seen", i < jStep);
     });
     const now = panel.querySelector<HTMLLIElement>(`.sm-chain li[data-i="${jStep}"]`);
-    const box = panel.querySelector<HTMLElement>(".sm-chain");
+    const box = panel.querySelector<HTMLElement>(".sm-j-scroll");
     if (!now || !box) return;
     // scroll the list only, never the page
-    const top = now.offsetTop - box.offsetTop;
+    const top = now.getBoundingClientRect().top - box.getBoundingClientRect().top + box.scrollTop;
     const bottom = top + now.offsetHeight;
     const behavior: ScrollBehavior = reduced ? "auto" : "smooth";
     if (top < box.scrollTop) box.scrollTo({ top, behavior });
@@ -940,6 +945,13 @@ export function mountSanadMap(
       <div class="sm-stat"><strong>${fmt(km)} كم</strong><span>تقريباً بين مواطنهم</span></div>
       ${years.length ? `<div class="sm-stat"><strong>${Math.min(...years)}–${Math.max(...years)}هـ</strong><span>سنوات الوفاة المعروفة</span></div>` : ""}
     </div>`;
+    // bring the summary and the note under it into view; when both cannot fit, start at the summary
+    const scroller = panel.querySelector<HTMLElement>(".sm-j-scroll");
+    const sum = box.firstElementChild;
+    if (scroller && sum) {
+      const top = sum.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop;
+      scroller.scrollTo({ top: Math.min(top, scroller.scrollHeight - scroller.clientHeight), behavior: reduced ? "auto" : "smooth" });
+    }
     live.textContent = `انتهت الرحلة: ${count(journey.nodes.length, "rajul")} في ${count(places.length, noun)}`;
   }
 
