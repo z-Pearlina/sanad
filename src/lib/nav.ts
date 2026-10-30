@@ -3,6 +3,7 @@ export const NAV = [
   { href: "/search/", label: "بحث" },
   { href: "/books/", label: "الكتب" },
   { href: "/time/", label: "الزمان" },
+  { href: "/insights/", label: "رؤى" },
   { href: "/game/", label: "رتّب السند" },
   { href: "/about/", label: "حول" },
 ];
