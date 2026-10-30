@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import ThemeButton from "../ThemeButton";
 import { mountSanadMap } from "./engine";
 import type { Geometry, MapData, NavLink } from "./types";
@@ -20,6 +20,10 @@ type Props = {
   /** Links shown under the wordmark. */
   nav?: NavLink[];
   autoplay?: boolean;
+  /** Open on this generation instead of the first. */
+  startGen?: number;
+  /** Open on the journey of this hadith. */
+  startJourney?: number;
   /** Use inside a scrolling page: Ctrl/⌘ + wheel to zoom, two fingers on touch. */
   cooperative?: boolean;
   className?: string;
@@ -43,6 +47,8 @@ export default function SanadMap({
   narratorHref = "/narrator/?id={id}",
   nav,
   autoplay = true,
+  startGen,
+  startJourney,
   cooperative = false,
   className,
 }: Props) {
@@ -67,6 +73,8 @@ export default function SanadMap({
         if (controller.signal.aborted) return;
         destroy = mountSanadMap(root, data, geo, {
           autoplay,
+          startGen,
+          startJourney,
           cooperative,
           hadithHref,
           narratorHref,
@@ -85,7 +93,7 @@ export default function SanadMap({
       destroy?.();
       root.replaceChildren();
     };
-  }, [dataUrl, geometryUrl, hadithHref, narratorHref, navKey, autoplay, cooperative, router]);
+  }, [dataUrl, geometryUrl, hadithHref, narratorHref, navKey, autoplay, startGen, startJourney, cooperative, router]);
 
   return (
     <>
@@ -93,4 +101,14 @@ export default function SanadMap({
       {tools && createPortal(<ThemeButton className="sm-theme" />, tools)}
     </>
   );
+}
+
+/** The map of the home page: ?gen=3 opens on a generation and ?journey=1 on a hadith's journey, and neither plays on its own. */
+export function HomeMap({ nav }: { nav: NavLink[] }) {
+  const params = useSearchParams();
+  const gen = Number(params.get("gen"));
+  const journey = Number(params.get("journey"));
+  const startGen = Number.isInteger(gen) && gen >= 1 && gen <= 12 ? gen : undefined;
+  const startJourney = journey || undefined;
+  return <SanadMap nav={nav} autoplay={!startGen && !startJourney} startGen={startGen} startJourney={startJourney} />;
 }

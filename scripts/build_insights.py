@@ -15,7 +15,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from build_map_data import REGIONS, build  # noqa: E402
+from build_map_data import REGIONS, band, build  # noqa: E402
 
 FORMULAS = [
     ("عن", {"'an"}),
@@ -29,6 +29,7 @@ OTHER = "وغيرها"
 FIRST_TEACHER_GENERATION = 9  # earlier than this, the "chain" is a suspended (mu'allaq) report
 TOP_LINKED = 10
 EXAMPLES = 3
+FEATURED = os.path.join(os.path.dirname(os.path.abspath(__file__)), "journeys.json")
 
 
 def formula_of(transmission):
@@ -64,6 +65,32 @@ def formulas(chains, persons, bukhari, numbers):
                 least_an = (share, number)
     rows = [{"t": t, "total": sum(c), "counts": c} for t, c in sorted(by_generation.items())]
     return {"labels": labels, "rows": rows, "unplaced": unplaced, "examples": {"mostAn": str(most_an[1]), "leastAn": str(least_an[1])}}
+
+
+def turning_chain(chains, persons, display, bukhari, numbers):
+    """A featured hadith whose chain turns as the figures do: "حدثنا" from al-Bukhari's end, then "عن" to the Companion."""
+    with open(FEATURED, encoding="utf-8") as f:
+        titles = {x["number"]: x["title"] for x in json.load(f)}
+    best = None
+    for _, hid, _, links in chains:
+        if numbers[hid] not in titles or not all(pid for _, _, pid, _, _ in links):
+            continue
+        words = [formula_of(trans) for _, _, _, _, trans in links]
+        speakers = [bukhari] + [pid for _, _, pid, _, _ in links][:-1]
+        told = 0
+        while told < len(words) and words[told] in (1, 2):
+            told += 1
+        rest = words[told:]
+        if told < 2 or len(rest) < 2 or rest[0] != 0:
+            continue
+        # the longest run of "عن" after the turn, and the fewest other words
+        score = (rest.count(0) - (len(rest) - rest.count(0)), told)
+        if best is None or score > best[0]:
+            best = (score, hid, speakers[told - 1], speakers[told])
+    if best is None:
+        return None
+    name = lambda pid: display.get(pid) or persons[pid]["name"]  # noqa: E731
+    return {"n": str(numbers[best[1]]), "title": titles[numbers[best[1]]], "until": name(best[2]), "from": name(best[3])}
 
 
 def regions(spread, top, display_top):
@@ -115,6 +142,7 @@ def linked(chains, persons, display, bukhari):
     men = [pid for pid in set(teachers) | set(students) if pid != bukhari]
     men.sort(key=lambda pid: (-(len(teachers[pid]) + len(students[pid])), persons[pid]["key"]))
     return [{"id": persons[pid]["key"].split(":")[1], "n": display.get(pid) or persons[pid]["name"],
+             "g": band(persons[pid].get("rank")).replace("none", "see"),  # the page's name for a rank not extracted
              "teachers": len(teachers[pid]), "students": len(students[pid])} for pid in men[:TOP_LINKED]]
 
 
@@ -131,7 +159,7 @@ def main():
     ends = dict(db.execute("SELECT id, ends_with FROM isnads"))
 
     out = {
-        "formulas": formulas(chains, persons, bukhari, numeric),
+        "formulas": {**formulas(chains, persons, bukhari, numeric), "turning": turning_chain(chains, persons, display, bukhari, numeric)},
         "regions": regions(data["spread"], data["top"], display),
         "lengths": lengths(chains, persons, ends, numeric),
         "linked": linked(chains, persons, display, bukhari),
@@ -145,6 +173,7 @@ def main():
     print(f"unplaced links {out['formulas']['unplaced']}; full chains {out['lengths']['total']}: "
           + ", ".join(f"{r['men']}:{r['count']}" for r in out["lengths"]["rows"]))
     print("most linked:", ", ".join(f"{m['n']} {m['teachers']}+{m['students']}" for m in out["linked"]))
+    print("turning chain:", out["formulas"]["turning"])
 
 
 if __name__ == "__main__":

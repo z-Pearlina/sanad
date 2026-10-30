@@ -94,6 +94,8 @@ export const NOUNS = {
   shaykh: { one: "شيخ", two: "شيخان", few: "شيوخ", many: "شيخاً", hundred: "شيخ" },
   tilmidh: { one: "تلميذ", two: "تلميذان", few: "تلاميذ", many: "تلميذاً", hundred: "تلميذ" },
   balad: { one: "بلد", two: "بلدان", few: "بلدان", many: "بلداً", hundred: "بلد" },
+  rawi: { one: "راوٍ", two: "راويان", few: "رواة", many: "راوياً", hundred: "راوٍ" },
+  sila: { one: "صلة", two: "صلتان", few: "صلات", many: "صلة", hundred: "صلة" },
 } satisfies Record<string, Forms>;
 
 /** The noun after a number printed on its own: 1 حديث، 2 حديثان، 5 أحاديث، 12 حديثاً، 100 حديث. */

@@ -736,6 +736,444 @@ html[data-scrolled] .site-mark > span:first-child {
   overscroll-behavior: contain;
 }
 
+/* ---------------------------------------------------------------- the insights (InsightCharts.tsx) */
+/* the words of transmission: lines in percent of the plot, so they stretch with the screen and the
+   type does not; the labels and dots are HTML laid over them */
+.fchart-keys {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 8px;
+  margin-bottom: 10px;
+  font-size: 13px;
+}
+.fchart-keys button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+  padding-inline: 6px;
+  cursor: pointer;
+}
+.fchart-keys button[aria-pressed="false"] {
+  color: var(--midad-soft);
+  text-decoration: line-through;
+}
+.fchart {
+  padding-inline-start: 34px;
+}
+.fchart-plot {
+  position: relative;
+  height: 300px;
+  margin-bottom: 28px;
+}
+.fchart-plot svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+.fchart-plot path,
+.fchart-plot line {
+  fill: none;
+  vector-effect: non-scaling-stroke;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+/* the two great lines are drawn from the first generation to the last */
+.fchart-bold {
+  clip-path: inset(-12px 0 -12px 100%);
+  transition: clip-path 1.4s ease-out;
+}
+.fchart-bold.is-on {
+  clip-path: inset(-12px -12px -12px -12px);
+}
+.fchart-y {
+  position: absolute;
+  right: -34px;
+  font-size: 11px;
+  color: var(--midad-soft);
+  transform: translateY(-50%);
+}
+.fchart-name {
+  position: absolute;
+  font-family: var(--font-naskh);
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1;
+  transform: translate(50%, calc(-100% - 8px));
+  pointer-events: none;
+}
+.fchart-turn {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--midad);
+  border: 2px solid var(--midad);
+  box-shadow: inset 0 0 0 2.5px var(--raqq);
+  transform: translate(50%, -50%);
+  pointer-events: none;
+}
+.fchart-note {
+  position: absolute;
+  width: max-content;
+  max-width: min(46%, 240px);
+  margin: 0;
+  font-family: var(--font-naskh);
+  font-size: 17px;
+  line-height: 1.35;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+.fchart-at {
+  position: absolute;
+  inset-block: 0;
+  border-right: 1px solid var(--midad-soft);
+  pointer-events: none;
+}
+.fchart-dot {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1.5px solid var(--raqq);
+  transform: translate(50%, -50%);
+  pointer-events: none;
+}
+.fchart-cols {
+  position: absolute;
+  inset: 0 0 -28px;
+  display: grid;
+  grid-template-columns: repeat(11, minmax(0, 1fr));
+}
+.fchart-cols button {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 4px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--midad-soft);
+  cursor: pointer;
+}
+.fchart-panel {
+  position: absolute;
+  z-index: 5;
+  top: 4px;
+  width: 200px;
+  padding: 8px 10px;
+  background: var(--raqq);
+  border: 1px solid var(--khatt);
+  box-shadow: 0 6px 18px rgb(0 0 0 / 0.16);
+  pointer-events: none;
+}
+.fchart-flow {
+  display: none;
+  padding: 6px 0;
+  border-block: 1px solid var(--khatt);
+}
+.fchart-panel-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+  font-family: var(--font-naskh);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+.fchart-panel-head span {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--midad-soft);
+}
+.fchart-panel li,
+.fchart-flow li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  line-height: 1.6;
+}
+.fchart-panel li b,
+.fchart-flow li b {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.fchart-count {
+  min-width: 3em;
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+  color: var(--midad-soft);
+}
+@media (max-width: 860px), (max-height: 500px) and (pointer: coarse) {
+  .fchart-keys button {
+    min-height: 44px;
+  }
+  .fchart-plot {
+    height: 240px;
+  }
+  .fchart-panel {
+    display: none;
+  }
+  .fchart-flow {
+    display: block;
+  }
+}
+
+/* the generations strip, as on the home map */
+.gens-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.gens-play {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 1.5px solid var(--zinjafr);
+  border-radius: 50%;
+  color: var(--zinjafr);
+  cursor: pointer;
+}
+.gens-strip {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  row-gap: 4px;
+}
+.gens-strip::before {
+  content: "";
+  position: absolute;
+  top: 12px;
+  inset-inline: 4.1667%;
+  height: 1px;
+  background: var(--khatt);
+}
+.gens-progress {
+  position: absolute;
+  top: 11px;
+  right: 4.1667%;
+  height: 3px;
+  background: var(--mughra);
+  transition: width 0.45s ease;
+}
+.gens-btn {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 3px;
+  min-width: 0;
+  cursor: pointer;
+}
+.gens-btn:hover,
+.gens-btn:active {
+  background: none;
+}
+.gens-btn i {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: 1.5px solid var(--midad-soft);
+  border-radius: 50%;
+  background: var(--raqq);
+  transition: border-color 0.15s, transform 0.15s;
+}
+.gens-btn i::after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: transparent;
+  transition: background-color 0.15s;
+}
+.gens-btn.is-past i {
+  border-color: var(--mughra);
+}
+.gens-btn.is-past i::after {
+  background: color-mix(in srgb, var(--mughra) 45%, transparent);
+}
+.gens-btn[aria-current] i {
+  border-color: var(--mughra);
+  border-width: 2.5px;
+  transform: scale(1.15);
+}
+.gens-btn[aria-current] i::after {
+  background: var(--mughra);
+}
+.gens-btn:hover i,
+.gens-btn:focus-visible i {
+  border-color: var(--nila);
+}
+.gens-btn b {
+  font-size: 11px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--midad-soft);
+}
+.gens-btn[aria-current] b {
+  font-weight: 600;
+  color: var(--midad);
+}
+.gens-eras {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 2fr 6fr 4fr;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--midad-soft);
+  text-align: center;
+}
+.gens-eras span {
+  padding-top: 2px;
+  white-space: nowrap;
+  border-top: 1px solid var(--khatt);
+}
+@media (max-width: 860px), (max-height: 500px) and (pointer: coarse) {
+  .gens-bar {
+    gap: 8px;
+  }
+  .gens-btn {
+    min-height: 44px;
+  }
+  .gens-btn i {
+    width: 19px;
+    height: 19px;
+  }
+  .gens-eras {
+    font-size: 9.5px;
+    gap: 3px;
+  }
+}
+.region-row {
+  display: grid;
+  grid-template-columns: 7.5rem minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 2px 4px;
+  text-align: start;
+  cursor: pointer;
+}
+.region-track {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.region-track i {
+  flex: none;
+  width: calc((100% - 3.5rem) * var(--share));
+  height: 16px;
+  min-width: 2px;
+  transition: width 0.45s ease, background-color 0.45s ease;
+}
+.len-cols {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  height: 230px;
+}
+.len-col {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  height: 100%;
+  cursor: pointer;
+}
+.len-col span {
+  padding-bottom: 3px;
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.len-col i {
+  display: block;
+  background: color-mix(in srgb, var(--mughra) 58%, transparent);
+  transition: height 0.7s ease-out, background-color 0.15s;
+}
+.len-col b {
+  padding-top: 4px;
+  font-size: 13px;
+  font-weight: 400;
+  text-align: center;
+  border-top: 1px solid var(--khatt);
+}
+.len-col:focus-visible span,
+.len-col[aria-pressed="true"] span {
+  opacity: 1;
+}
+.len-col[aria-pressed="true"] i {
+  background: var(--mughra);
+}
+@media (hover: hover) {
+  .len-col:hover span {
+    opacity: 1;
+  }
+  .len-col:hover i {
+    background: var(--mughra);
+  }
+}
+.linked-key {
+  display: block;
+  width: 16px;
+  height: 8px;
+}
+.linked-row {
+  display: grid;
+  grid-template-columns: 16px minmax(6.5rem, 9rem) minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  padding-block: 1px;
+}
+.linked-bar {
+  display: flex;
+  flex: none;
+  width: calc((100% - 66px) * var(--share));
+  height: 13px;
+  transition: width 0.7s ease-out;
+}
+.linked-bar i {
+  flex-basis: 0;
+  min-width: 2px;
+}
+.linked-fig {
+  font-size: 12.5px;
+  white-space: nowrap;
+  color: var(--midad-soft);
+}
+.linked-both {
+  display: none;
+}
+.linked-row:hover .linked-all {
+  display: none;
+}
+.linked-row:hover .linked-both {
+  display: inline;
+}
+/* a phone has no hover: both figures are always written */
+@media (hover: none) {
+  .linked-all {
+    display: none;
+  }
+  .linked-both {
+    display: inline;
+  }
+}
+
 /* The narrator the hadith map is drawing: a ring breathes around his dara (Dara lit). */
 .dara-lit {
   transform-box: fill-box;

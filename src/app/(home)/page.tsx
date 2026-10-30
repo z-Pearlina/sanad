@@ -1,5 +1,6 @@
+import { Suspense } from "react";
 import PhoneBar from "@/components/PhoneBar";
-import SanadMap from "@/components/sanad-map/SanadMap";
+import { HomeMap } from "@/components/sanad-map/SanadMap";
 import { NAV } from "@/lib/nav";
 
 // The home page is the map alone: its masthead carries the wordmark and the section links
@@ -9,7 +10,9 @@ export default function Home() {
   return (
     <main className="home-map">
       <PhoneBar />
-      <SanadMap nav={NAV} />
+      <Suspense fallback={<div className="sanad-map" dir="rtl" lang="ar" />}>
+        <HomeMap nav={NAV} />
+      </Suspense>
     </main>
   );
 }

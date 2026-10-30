@@ -21,6 +21,10 @@ import type { Flow, Geometry, Journey, JourneyNode, MapData, NavLink } from "./t
 export type SanadMapOptions = {
   /** Play the generations once on load (default true). */
   autoplay?: boolean;
+  /** Open on this generation instead of the first. */
+  startGen?: number;
+  /** Open on the journey of this hadith, if it is one of the journeys. */
+  startJourney?: number;
   /** For maps inside a scrolling page: the wheel zooms only with Ctrl/⌘, touch needs two fingers. */
   cooperative?: boolean;
   /** Hadith page link; "{n}" becomes the hadith number. Empty for no links. */
@@ -1201,14 +1205,16 @@ export function mountSanadMap(
   applyLayout();
   if (upright()) sheet.set("min", false);
   home(0);
-  setGen(1, false);
+  setGen(opts.startGen ?? 1, false);
   // the names are chosen by their real size, known once the font has arrived
   document.fonts.load("700 13px Amiri", "الكوفة").then(() => {
     if (dead || !phone) return;
     measureLabels();
     layoutLabels();
   });
-  if (!reduced && opts.autoplay !== false) {
+  const firstJourney = DATA.journeys.find((j) => j.number === opts.startJourney);
+  if (firstJourney) startJourney(firstJourney);
+  else if (!reduced && opts.autoplay !== false) {
     autoplayTimer = window.setTimeout(() => {
       if (mode === "gen" && !playing) startPlay(11);
     }, 1600);
