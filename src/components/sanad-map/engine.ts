@@ -1204,7 +1204,7 @@ export function mountSanadMap(
   home(0);
   setGen(1, false);
   // the names are chosen by their real size, known once the font has arrived
-  document.fonts.load("700 13px Amiri").then(() => {
+  document.fonts.load("700 13px Amiri", "الكوفة").then(() => {
     if (dead || !phone) return;
     measureLabels();
     layoutLabels();
