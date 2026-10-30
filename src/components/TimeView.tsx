@@ -535,8 +535,13 @@ function BottomSheet({ title, onClose, children }: { title: string; onClose: () 
   const end = () => {
     if (start.current === null) return;
     start.current = null;
-    if (moved.current > DRAG_TO_CLOSE) onClose();
-    else if (panel.current) panel.current.style.transform = "";
+    // it slides away before it leaves the page: removing the element under a finger that has
+    // only just lifted makes the browser drop the next tap
+    if (moved.current > DRAG_TO_CLOSE && panel.current) {
+      panel.current.style.transition = "transform 0.18s ease-in";
+      panel.current.style.transform = "translateY(100%)";
+      window.setTimeout(onClose, 200);
+    } else if (panel.current) panel.current.style.transform = "";
     moved.current = 0;
   };
 
@@ -547,7 +552,7 @@ function BottomSheet({ title, onClose, children }: { title: string; onClose: () 
         onPointerDown={(e) => {
           if ((e.target as Element).closest("button")) return;
           start.current = e.clientY;
-          e.currentTarget.setPointerCapture(e.pointerId);
+          if (e.pointerType === "mouse") e.currentTarget.setPointerCapture(e.pointerId); // a touch is captured by itself
         }}
         onPointerMove={move}
         onPointerUp={end}
