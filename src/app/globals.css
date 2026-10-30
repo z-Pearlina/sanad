@@ -1241,6 +1241,48 @@ html[data-scrolled] .site-mark > span:first-child {
   }
 }
 
+/* the card a narrator's name opens (NarratorCard.tsx): placed by script, under every frame and sheet */
+.ncard {
+  position: fixed;
+  z-index: 70;
+  top: 0;
+  left: 0;
+  width: 310px;
+  max-width: calc(100vw - 24px);
+  padding: 10px 12px;
+  text-align: start;
+  background: var(--raqq);
+  border: 1px solid var(--khatt);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.2);
+  pointer-events: none;
+  animation: note-in 0.12s ease-out;
+}
+.ncard-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  line-height: 1.4;
+}
+.ncard-name b {
+  line-height: 1.4;
+}
+.ncard-verdict {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  margin-top: 2px;
+  font-size: 16px;
+  line-height: 1.6;
+}
+.ncard-facts {
+  margin-top: 4px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--midad-soft);
+}
+
 /* The narrator the hadith map is drawing: a ring breathes around his dara (Dara lit). */
 .dara-lit {
   transform-box: fill-box;
