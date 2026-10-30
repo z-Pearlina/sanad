@@ -36,16 +36,19 @@ export default function NarratorCard() {
       if (wanted === link) return;
       wanted = link;
       window.clearTimeout(timer);
+      const id = new URL(link.href).searchParams.get("id");
+      if (!id) return;
+      // fetched at once, so the card is ready when the pause ends
+      const data = Promise.all([getNarrator(id), getCities()]).catch(() => null);
       timer = window.setTimeout(async () => {
-        const id = new URL(link.href).searchParams.get("id");
-        if (!id) return;
-        const found = await Promise.all([getNarrator(id), getCities()]).catch(() => null);
+        const found = await data;
         if (!found || wanted !== link || !link.isConnected) return;
         const [narrator, cities] = found;
         setCard({ link, narrator, city: narrator.city ? (cities[narrator.city]?.ar ?? null) : null });
       }, wait);
     };
-    const linkOf = (target: EventTarget | null) => (target instanceof Element ? target.closest<HTMLAnchorElement>(LINK) : null);
+    // not inside the quick search, whose window lies above everything else
+    const linkOf = (target: EventTarget | null) => (target instanceof Element && !target.closest("dialog") ? target.closest<HTMLAnchorElement>(LINK) : null);
 
     const onOver = (e: PointerEvent) => {
       if (e.pointerType !== "mouse") return;

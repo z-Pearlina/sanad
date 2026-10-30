@@ -309,7 +309,7 @@ html[data-scrolled] .site-mark > span:first-child {
   align-items: center;
   gap: 6px;
   min-height: 32px;
-  padding: 3px 10px;
+  padding: 3px 8px;
   font-size: 13px;
   white-space: nowrap;
   color: var(--midad);
@@ -1238,6 +1238,105 @@ html[data-scrolled] .site-mark > span:first-child {
   }
   .linked-both {
     display: inline;
+  }
+}
+
+/* the quick search (QuickSearch.tsx): a window over the page, opened by the magnifier or Ctrl+K */
+.qsearch {
+  width: min(640px, calc(100vw - 24px));
+  max-width: none;
+  max-height: min(78svh, 640px);
+  margin: 9svh auto auto;
+  padding: 0;
+  overflow: hidden;
+  color: var(--midad);
+  background: var(--raqq);
+  border: 1px solid var(--khatt);
+  box-shadow: 0 18px 48px rgb(0 0 0 / 0.3);
+}
+.qsearch[open] {
+  display: flex;
+  flex-direction: column;
+  animation: note-in 0.15s ease-out;
+}
+.qsearch::backdrop {
+  background: rgb(0 0 0 / 0.38);
+}
+html:has(.qsearch[open]) {
+  overflow: hidden;
+}
+.qsearch-input {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--khatt);
+}
+.qsearch-input:focus-within {
+  border-bottom-color: var(--nila);
+}
+.qsearch-input input {
+  flex: 1;
+  min-width: 0;
+  min-height: 32px;
+  font-size: 18px;
+  background: none;
+  outline: none;
+}
+.qsearch-input input::-webkit-search-cancel-button {
+  display: none;
+}
+.qsearch-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding-block: 4px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.qsearch-head {
+  padding: 8px 14px 2px;
+  font-size: 12px;
+  color: var(--midad-soft);
+}
+.qsearch-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 5px 14px;
+}
+.qsearch-row:hover {
+  background: none;
+}
+.qsearch-row[aria-selected="true"] {
+  background: var(--wash-deep);
+}
+.qsearch-note {
+  padding: 14px;
+  font-size: 14px;
+  color: var(--midad-soft);
+}
+.qsearch-foot {
+  flex: none;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 14px;
+  font-size: 12px;
+  color: var(--midad-soft);
+  border-top: 1px solid var(--khatt);
+}
+.qsearch-foot kbd {
+  font-family: inherit;
+}
+@media (max-width: 860px), (max-height: 500px) and (pointer: coarse) {
+  .qsearch {
+    margin-top: 12px;
+    max-height: calc(100svh - 24px);
+  }
+  .qsearch-foot {
+    display: none;
   }
 }
 

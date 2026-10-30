@@ -7,6 +7,7 @@ import "@fontsource/ibm-plex-sans-arabic/600.css";
 import "@fontsource/aref-ruqaa/700.css";
 import "./globals.css";
 import NarratorCard from "@/components/NarratorCard";
+import QuickSearch from "@/components/QuickSearch";
 import { THEME_SCRIPT } from "@/lib/theme";
 
 export const metadata: Metadata = {
@@ -32,6 +33,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col bg-raqq text-midad">
         {children}
         <NarratorCard />
+        <QuickSearch />
       </body>
     </html>
   );

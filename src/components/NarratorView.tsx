@@ -94,7 +94,7 @@ export default function NarratorView({ id }: { id: string }) {
               <>
                 {deathText(p.death)}
                 {p.deathFix && <span className="block text-sm text-midad-soft">صُحّحت السنة: {p.deathFix}</span>}
-                <Link href={`/time/?id=${p.id}`} className="block text-sm text-nila underline underline-offset-4 phone:inline-flex phone:min-h-11 phone:items-center">
+                <Link href={`/time/?id=${p.id}`} className="block text-sm text-nila underline underline-offset-4 phone:flex phone:min-h-11 phone:items-center">
                   موضعه في جدول الوفيات
                 </Link>
               </>

@@ -3,6 +3,7 @@
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { SearchButton } from "./QuickSearch";
 import SiteNav from "./SiteNav";
 import ThemeButton from "./ThemeButton";
 import { TAGLINE } from "@/lib/nav";
@@ -34,16 +35,19 @@ export default function PhoneBar() {
       <Link href="/" className="phone-bar-mark font-ruqaa" aria-label="سَنَد: الصفحة الرئيسية">
         سَنَد
       </Link>
-      <button
-        type="button"
-        className="phone-bar-button"
-        aria-label={open ? "إغلاق القائمة" : "القائمة"}
-        aria-expanded={open}
-        aria-controls="phone-menu"
-        onClick={() => setOpen(!open)}
-      >
-        <Icon size={22} strokeWidth={1.5} aria-hidden="true" />
-      </button>
+      <span className="flex">
+        <SearchButton className="phone-bar-button" />
+        <button
+          type="button"
+          className="phone-bar-button"
+          aria-label={open ? "إغلاق القائمة" : "القائمة"}
+          aria-expanded={open}
+          aria-controls="phone-menu"
+          onClick={() => setOpen(!open)}
+        >
+          <Icon size={22} strokeWidth={1.5} aria-hidden="true" />
+        </button>
+      </span>
       {open && (
         <nav id="phone-menu" className="phone-menu" aria-label="أقسام الموقع">
           <p>{TAGLINE}</p>

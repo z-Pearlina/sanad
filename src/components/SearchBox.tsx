@@ -2,110 +2,14 @@
 
 import { ChevronDown, ChevronLeft } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Dara from "./Dara";
-import { getData } from "@/lib/data";
 import { deathText, hadithCount } from "@/lib/labels";
-import { nameWords, westernDigits } from "@/lib/names";
-import { findTexts, parseQuery, readHits, type TextHit } from "@/lib/textSearch";
-import type { Group } from "@/lib/types";
-
-type Entry = {
-  id: string;
-  name: string;
-  kunya: string | null;
-  laqab: string | null;
-  nisba: string | null;
-  death: number | null;
-  group: Group;
-  count: number;
-};
-type Indexed = Entry & { words: string[]; all: string };
-type Tab = "texts" | "narrators";
-type Texts = { numbers: string[]; hits: TextHit[]; next: number; busy: boolean };
-
-const MAX_NARRATORS = 12;
-const PAGE = 15;
-const WAIT_MS = 180; // a pause in the typing before the texts are searched
-const NO_TEXTS: Texts = { numbers: [], hits: [], next: 0, busy: false };
+import { MAX_NARRATORS, useSearch } from "@/lib/useSearch";
 
 export default function SearchBox() {
   const router = useRouter();
-  const [query, setQuery] = useState("");
-  const [index, setIndex] = useState<Indexed[] | null>(null);
-  const [texts, setTexts] = useState<Texts>(NO_TEXTS);
-  const [searched, setSearched] = useState("");
-  const [chosen, setChosen] = useState<Tab | null>(null);
-  const run = useRef(0); // the latest search: an older one that finishes late is dropped
-
-  // Load the narrator index (~300 KB) only once someone starts to search.
-  const load = () => {
-    if (index) return;
-    getData<Entry[]>("narrators-index.json").then((rows) =>
-      setIndex(
-        rows.map((r) => {
-          const w = nameWords([r.name, r.kunya, r.laqab, r.nisba].filter(Boolean).join(" "));
-          return { ...r, words: w, all: w.join("") };
-        }),
-      ),
-    );
-  };
-
-  const q = westernDigits(query.trim());
-  const number = /^\d+(\.\d+)?$/.test(q) ? q : null;
-
-  const narrators = useMemo(() => {
-    if (!index || number || q.length < 2) return [];
-    const qWords = nameWords(q);
-    const qAll = qWords.join("");
-    if (!qAll) return [];
-    const scored: [number, Indexed][] = [];
-    for (const r of index) {
-      // every word of the query starts a word of the entry, in any order: best;
-      // the query found anywhere (spaces ignored): still a match
-      const allWords = qWords.every((w) => r.words.some((x) => x.startsWith(w)));
-      const score = allWords ? (r.words[0].startsWith(qWords[0]) ? 3 : 2) : r.all.includes(qAll) ? 1 : 0;
-      if (score) scored.push([score, r]);
-    }
-    return scored.sort((a, b) => b[0] - a[0] || b[1].count - a[1].count).slice(0, MAX_NARRATORS);
-  }, [index, number, q]);
-
-  useEffect(() => {
-    const id = ++run.current;
-    const timer = window.setTimeout(async () => {
-      if (number || q.length < 2) {
-        setTexts(NO_TEXTS);
-        setSearched("");
-        return;
-      }
-      setTexts((t) => ({ ...t, busy: true }));
-      const parsed = parseQuery(query);
-      const numbers = await findTexts(parsed);
-      const { hits, next } = await readHits(numbers, 0, PAGE, parsed);
-      if (id !== run.current) return;
-      setTexts({ numbers, hits, next, busy: false });
-      setSearched(q);
-    }, WAIT_MS);
-    return () => window.clearTimeout(timer);
-  }, [query, q, number]);
-
-  const more = async () => {
-    const id = run.current;
-    setTexts((t) => ({ ...t, busy: true }));
-    const { hits, next } = await readHits(texts.numbers, texts.next, PAGE, parseQuery(query));
-    if (id !== run.current) return;
-    setTexts((t) => ({ ...t, hits: [...t.hits, ...hits], next, busy: false }));
-  };
-
-  const phrases = parseQuery(query).phrases.length > 0;
-  const hasMore = texts.next < texts.numbers.length;
-  // a phrase is only confirmed in the text of each hadith, so its count grows as they are read
-  const textCount = phrases ? texts.hits.length : texts.numbers.length;
-  const answered = searched === q && !texts.busy;
-  // a name opens on the narrators and words on the texts, until the visitor chooses
-  const isName = narrators.some(([, r]) => nameWords(q).every((w) => r.words.includes(w)));
-  const tab: Tab = chosen ?? (isName || (narrators.length > 0 && textCount === 0) ? "narrators" : "texts");
+  const { query, type, load, q, number, index, narrators, texts, more, phrases, hasMore, textCount, answered, tab, setTab } = useSearch(useSearchParams().get("q") ?? "");
 
   return (
     <div id="search">
@@ -126,11 +30,7 @@ export default function SearchBox() {
           enterKeyHint="search"
           value={query}
           onFocus={load}
-          onChange={(e) => {
-            load();
-            setQuery(e.target.value);
-            setChosen(null);
-          }}
+          onChange={(e) => type(e.target.value)}
           placeholder="مثلاً: 6018، أو الزهري، أو إنما الأعمال"
           autoComplete="off"
           className="w-full max-w-xl rounded-sm border border-khatt bg-raqq px-3 py-2 text-lg"
@@ -147,10 +47,10 @@ export default function SearchBox() {
         {!number && q.length >= 2 && (
           <>
             <div role="tablist" aria-label="نتائج البحث" className="mb-2 flex gap-1 border-b border-khatt">
-              <TabButton on={tab === "texts"} onClick={() => setChosen("texts")}>
+              <TabButton on={tab === "texts"} onClick={() => setTab("texts")}>
                 النصوص <span className="tabular-nums">({answered ? `${textCount}${phrases && hasMore ? "+" : ""}` : "…"})</span>
               </TabButton>
-              <TabButton on={tab === "narrators"} onClick={() => setChosen("narrators")}>
+              <TabButton on={tab === "narrators"} onClick={() => setTab("narrators")}>
                 الرواة <span className="tabular-nums">({index ? (narrators.length === MAX_NARRATORS ? `${MAX_NARRATORS}+` : narrators.length) : "…"})</span>
               </TabButton>
             </div>
@@ -187,7 +87,7 @@ export default function SearchBox() {
                 {index && narrators.length === 0 && <p className="text-sm text-midad-soft">لا راوي بهذا الاسم في أسانيد البخاري.</p>}
                 {narrators.length > 0 && (
                   <ul className="divide-y divide-khatt">
-                    {narrators.map(([, r]) => (
+                    {narrators.map((r) => (
                       <li key={r.id}>
                         <Link href={`/narrator/?id=${r.id}`} className="group flex items-center gap-3 py-2 phone:min-h-11">
                           <Dara group={r.group} size={18} />

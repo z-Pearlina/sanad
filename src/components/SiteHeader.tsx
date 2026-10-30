@@ -1,6 +1,7 @@
 import Link from "next/link";
 import HeaderWatch from "./HeaderWatch";
 import PhoneBar from "./PhoneBar";
+import { SearchButton } from "./QuickSearch";
 import SiteNav from "./SiteNav";
 import ThemeButton from "./ThemeButton";
 import { TAGLINE } from "@/lib/nav";
@@ -18,6 +19,7 @@ export default function SiteHeader() {
           <nav className="flex items-center gap-1 text-sm font-medium" aria-label="أقسام الموقع">
             <SiteNav />
           </nav>
+          <SearchButton className="line-button" />
           <ThemeButton className="line-button" />
         </div>
       </div>

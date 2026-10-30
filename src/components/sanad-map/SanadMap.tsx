@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter, useSearchParams } from "next/navigation";
+import { SearchButton } from "../QuickSearch";
 import ThemeButton from "../ThemeButton";
 import { mountSanadMap } from "./engine";
 import { todayOf } from "./today";
@@ -102,7 +103,14 @@ export default function SanadMap({
   return (
     <>
       <div ref={ref} className={className ? `sanad-map ${className}` : "sanad-map"} dir="rtl" lang="ar" />
-      {tools && createPortal(<ThemeButton className="sm-theme" />, tools)}
+      {tools &&
+        createPortal(
+          <>
+            <SearchButton className="sm-theme" />
+            <ThemeButton className="sm-theme" />
+          </>,
+          tools,
+        )}
     </>
   );
 }

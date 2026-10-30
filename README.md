@@ -40,10 +40,10 @@
 </tr>
 <tr>
 <td valign="top"><img src="docs/time.jpg" alt="جدول الوفيات في صفحة الزمان"><br><b>الزمان</b><br>جدول الوفيات: كم توفي في كل عقد وكل إقليم، وجملة خلاصة تُبنى من الأرقام. اضغط على خانة لترى رجالها بحكم ابن حجر، وابحث عن راوٍ لتصل إلى خانته.</td>
-<td valign="top"><img src="docs/insights.jpg" alt="صفحة رؤى من البيانات"><br><b>رؤى من البيانات</b><br>أربعة أسئلة تجيب عنها الأرقام: تغيّر صيغ الأداء عبر الطبقات، ومواطن كل طبقة، وأطوال الأسانيد التامة، وأكثر الرواة صلات.</td>
+<td valign="top"><img src="docs/insights.jpg" alt="صفحة رؤى من البيانات"><br><b>رؤى من البيانات</b><br>أربعة رسوم تُستكشف بالمرور والنقر: تغيّر صيغ الأداء عبر الطبقات ونقطة انقلابها، ومواطن كل طبقة بشريط الطبقات، وأطوال الأسانيد التامة، وأكثر الرواة صلات.</td>
 </tr>
 <tr>
-<td valign="top"><img src="docs/search.jpg" alt="البحث في نصوص الأحاديث"><br><b>البحث</b><br>حقل واحد: الرقم يفتح الحديث، والاسم يبحث في الرواة، والكلمات تبحث في نصوص الأحاديث بلا تشكيل ولا همزات، والعبارة بين علامتي تنصيص تُطابَق متتابعة.</td>
+<td valign="top"><img src="docs/search.jpg" alt="البحث في نصوص الأحاديث"><br><b>البحث</b><br>حقل واحد: الرقم يفتح الحديث، والاسم يبحث في الرواة، والكلمات تبحث في نصوص الأحاديث بلا تشكيل ولا همزات، والعبارة بين علامتي تنصيص تُطابَق متتابعة. ومن أي صفحة تفتح أيقونة البحث أو Ctrl+K نافذة بحث تُتصفح نتائجها بالأسهم.</td>
 <td valign="top"><img src="docs/books.jpg" alt="فهرس كتب صحيح البخاري"><br><b>فهرس الكتب</b><br>كتب الصحيح كفهرس المخطوط: رقم كل كتاب وعنوانه ومدى أحاديثه وعددها.</td>
 </tr>
 <tr>
@@ -183,7 +183,8 @@ npm run data       # hadith and narrator files, the map, the insights, the searc
 - **Home map:** where the narrators of the six books lived, generation by generation, with the flow of transmission from teacher's city to student's city, and featured hadiths whose chains can be followed step by step.
 - **Hadith page:** the Arabic text (from the Ummah API) with transmission words marked; the chain told on the map from the Companion to al-Bukhari, lighting each narrator in the chain column and on the death-year timeline.
 - **Narrator page:** the full Taqrib entry, count-ups, a map of his teachers and students, and his hadiths.
-- **Time page:** a table of deaths, decade by decade and region by region, with a summary sentence built from the figures; a cell opens its narrators with Ibn Hajar's verdicts.
+- **Time page:** a table of deaths, decade by decade and region by region, with a summary sentence built from the figures; a cell opens its narrators with Ibn Hajar's verdicts, and one strip in the shares of the rank groups hides or shows them.
+- **Everywhere:** a card on any narrator's name (hover or keyboard focus), a quick search on Ctrl+K, a light, dark or automatic theme, and a chain of the day on the map.
 - **Search:** one field that opens a hadith by number, finds narrators by name, and searches the hadith texts through an index split into small files, so only what the typed words need is loaded.
 - **Insights:** four questions answered from the data, with every figure computed: how the transmission words changed across the generations, where each generation lived, how many men stand in a full chain, and who is the most connected narrator. Also a table of books and an *order the chain* game.
 - **On phones:** the map fills the screen above a three-stop sheet, city names never overlap, the drawing is lighter, and maps inside pages open full screen. The desktop is untouched by any of it.
