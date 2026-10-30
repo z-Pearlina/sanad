@@ -31,6 +31,8 @@ type MapFile = { tabaqat: { links: number }[] };
 
 const s = readData<Stats>("stats.json");
 const map = readData<MapFile>("map.json");
+const time = readData<{ total: number; dated: number; narrators: { y: number }[] }>("time.json");
+const pastAxis = time.narrators.filter((r) => r.y > 260).length;
 const chainLinks = map.tabaqat.reduce((sum, t) => sum + t.links, 0);
 // Isolated left-to-right so the sign stays after the digits inside Arabic text.
 const pct = (part: number, whole: number) => <bdi dir="ltr">{Math.round((part / whole) * 100)}%</bdi>;
@@ -121,6 +123,17 @@ export default function AboutPage() {
             في صفحة الحديث يُروى السند على الخريطة راوياً بعد راوٍ من موطن الصحابي إلى البخاري، والمسافة في الملخص تقريبية
             بين المواطن لا الطرق. والخرائط كلها تعرض مواطن الرواة لا أماكن السماع.
           </li>
+          <li>
+            صفحة «الزمان» تضع كل راوٍ له سنة وفاة في تقريب التهذيب على محور السنين ({n(time.dated)} من {n(time.total)} راوياً)،
+            ومن لا تُعرف وفاته لا يُقدَّر فيها. والأقاليم مجموعة من مدن الخريطة نفسها.
+          </li>
+          <li>
+            البحث في النصوص يشمل المتن وحده دون السند، بعد حذف التشكيل وتوحيد الهمزات، وتُطابق الكلمة وما اتصل بها من حروف
+            مثل الواو والباء و«ال»، فالبحث عن «الصبا» يجد «بالصبا».
+          </li>
+          <li>
+            «رؤى من البيانات» أرقام وصفية من أسانيد صحيح البخاري في هذه البيانات، لا أحكام، وشرط كل رسم مكتوب تحته.
+          </li>
         </ul>
       </Section>
 
@@ -139,6 +152,10 @@ export default function AboutPage() {
           <li>
             استخراج الحكم آلي وناقص عند بعض كبار الأئمة (مالك بلا مرتبة، ولفظ الزهري مبتور)، فالترجمة كاملة في صفحة كل
             راوٍ هي المرجع. ووسم «تعرّف آلي» يعني أن الأداة لم تقطع بصاحب الاسم.
+          </li>
+          <li>
+            سنوات الوفاة مستخرجة آلياً من التقريب، وابن حجر يحذف المائة غالباً، فقد تخطئ الأداة في قرنها. و{pastAxis} رواة تقع
+            وفاتهم في البيانات بعد سنة 260هـ، فيُعرضون في شريط بعد المحور.
           </li>
           <li>
             {s.isnadsNotLocated} سنداً لم يوجد نصه داخل نص الحديث فيُعرض بلا تلوين، و{s.isnadsWithNote} سنداً تعتمد على
