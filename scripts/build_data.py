@@ -24,7 +24,7 @@ from collections import Counter, defaultdict
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from build_map_data import CITIES as PLACES, display_names, generation_of, home_of  # noqa: E402
+from build_map_data import CITIES as PLACES, REGIONS, display_names, generation_of, home_of, verdict_for  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_DB = Path(os.environ.get("LOCALAPPDATA", Path.home())) / "isnady" / "isnady.db"
@@ -241,7 +241,7 @@ def main() -> None:
             shutil.rmtree(out / folder)
 
     # ---- hadith files + narrator usage
-    used: dict[str, dict] = defaultdict(lambda: {"hadiths": [], "teachers": Counter(), "students": Counter()})
+    used: dict[str, dict] = defaultdict(lambda: {"hadiths": [], "teachers": Counter(), "students": Counter(), "chains": 0})
     stats = Counter()
     game: dict[tuple, dict] = {}  # one entry per distinct chain of narrators
     game_skip = {norm(w) for w in GAME_SKIP_NAMES}
@@ -259,6 +259,9 @@ def main() -> None:
                 chain.append(link)
             # Ordered from al-Bukhari to the Companion: each one heard from the next.
             ids = [BUKHARI_TAQRIB] + [ln["id"] for ln in chain]
+            for nid in dict.fromkeys(ids):  # once per chain, in order, so the files come out the same on every run
+                if nid is not None:
+                    used[nid]["chains"] += 1
             for i, nid in enumerate(ids):
                 if nid is None:
                     continue
@@ -384,6 +387,18 @@ def main() -> None:
         "hadithsWithoutBook": sum(1 for v in sec_of.values() if v == 0),
         "cities": len(PLACES),
         "featured": len(FEATURED),
+    })
+
+    # ---- time page: the narrators of the chains whose death year the Taqrib gives
+    dated = sorted((p for p in chain_people if p["death"]), key=lambda p: (-used[p["id"]]["chains"], p["death"], p["id"]))
+    write(out / "time.json", {
+        "total": len(chain_people),
+        "dated": len(dated),
+        "regions": [{"id": rid, "name": name, "cities": cities} for rid, name, cities in REGIONS],
+        "narrators": [{
+            "id": p["id"], "n": p["short"] or p["name"], "y": p["death"], "t": p["tabaqa"], "g": p["group"], "v": verdict_for(p),
+            "c": p["city"], **({"m": 1} if p["citySrc"] == "manual" else {}), "k": used[p["id"]]["chains"],
+        } for p in dated],
     })
 
     # ---- report

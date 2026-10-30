@@ -70,6 +70,17 @@ CITIES = [
     ("bukhara", "بخارى", 39.77, 64.42, False),
 ]
 
+# The regions of the time and insights pages, by the place ids above.
+REGIONS = [
+    ("hijaz", "الحجاز واليمامة", ["madina", "makka", "taif", "yamama"]),
+    ("yemen", "اليمن", ["yaman", "sanaa"]),
+    ("iraq", "العراق", ["kufa", "basra", "baghdad", "wasit"]),
+    ("jazira", "الجزيرة", ["jazira", "harran", "mosul"]),
+    ("sham", "الشام", ["sham", "dimashq", "hims", "quds", "ramla", "asqalan", "ayla"]),
+    ("misr", "مصر", ["misr", "tinnis"]),
+    ("east", "المشرق", ["rayy", "isfahan", "khurasan", "naysabur", "marw", "harat", "balkh", "baghlan", "bukhara"]),
+]
+
 # Nisba -> place. When a name carries several, the last one wins
 # ("الكوفي ثم المكي" -> Mecca). الهمداني is a tribe, so it is not here.
 NISBA = {
