@@ -28,11 +28,14 @@ const ERAS = [
   { label: "بعد 200هـ", from: 20, span: 6 },
 ];
 const GROUPS: Group[] = ["sahabi", "thiqa", "saduq", "maqbul", "daif", "see"];
+// short enough to be written on the narrowest parts of the strip
+const STRIP_NAME: Record<Group, string> = { sahabi: "صحابي", thiqa: "ثقة", saduq: "صدوق", maqbul: "مقبول", daif: "ضعيف", see: "انظر الترجمة" };
 const NONE = "none";
 const SHORT: Record<string, string> = { hijaz: "الحجاز", yemen: "اليمن", iraq: "العراق", jazira: "الجزيرة", sham: "الشام", misr: "مصر", east: "المشرق", none: "بلا نسبة" };
 const BIG_REGIONS = 3; // named in the summary
 const MIN_FOR_SUMMARY = 5;
 const WINDOW = 3; // decades: thirty years
+const TWEEN_MS = 300;
 
 const decadeOf = (y: number) => Math.min(LAST, Math.floor(y / 10));
 const span = (d: number) => (d === LAST ? "من 250هـ فما بعدها" : `بين ${d * 10} و${d * 10 + 9}هـ`);
@@ -124,6 +127,13 @@ export default function TimeView() {
     return out;
   }, [file, rows, rowOf, off]);
 
+  // the cells that have anyone at all: they stay in place, faded, while their groups are hidden
+  const every = useMemo(() => {
+    const out = rows.map(() => DECADES.map(() => false));
+    for (const n of file?.narrators ?? []) out[rowOf(n)][decadeOf(n.y)] = true;
+    return out;
+  }, [file, rows, rowOf]);
+
   const most = useMemo(() => Math.max(1, ...grid.flat().map((c) => c.length)), [grid]);
   const fullest = useMemo<Selection>(() => {
     let best: Selection = { r: 0, d: 0 };
@@ -193,7 +203,7 @@ export default function TimeView() {
 
   const title = sel.r === undefined ? `${span(sel.d)}: ${men(decadeTotal(sel.d))}` : cellLabel(sel.r, sel.d);
   const list = <Roster sel={sel} rows={rows} grid={grid} cities={cities} focus={focus} />;
-  const tableProps = { rows, grid, most, sel, hover, allDecades, pick, point, leave, cellLabel };
+  const tableProps = { rows, grid, every, most, sel, hover, allDecades, pick, point, leave, cellLabel };
 
   return (
     <main className={`mx-auto max-w-6xl px-4 py-6 phone:px-1 ${phone ? "pb-24" : ""}`}>
@@ -204,25 +214,7 @@ export default function TimeView() {
           <strong className="font-semibold text-midad"><CountNum value={file.dated} /> من <CountNum value={file.total} /> راوياً لهم سنة وفاة معروفة.</strong>
         </p>
 
-        <div className="mt-4 flex flex-wrap items-center gap-2 phone:flex-nowrap phone:overflow-x-auto" role="group" aria-label="مجموعات المراتب">
-          {GROUPS.filter((g) => file.narrators.some((n) => n.g === g)).map((g) => (
-            <button
-              key={g}
-              type="button"
-              aria-pressed={!off.has(g)}
-              onClick={() => {
-                const next = new Set(off);
-                if (next.has(g)) next.delete(g);
-                else next.add(g);
-                setOff(next);
-              }}
-              className={`flex items-center gap-1.5 rounded-sm border px-2.5 py-1 text-sm phone:min-h-11 phone:shrink-0 phone:whitespace-nowrap ${off.has(g) ? "border-khatt text-midad-soft line-through" : "border-midad-soft"}`}
-            >
-              <span className="inline-block size-2.5 rounded-full" style={{ background: GROUP_COLOR[g] }} aria-hidden="true" />
-              {GROUP_LABEL[g]} <span className="tabular-nums text-midad-soft">{file.narrators.filter((n) => n.g === g).length}</span>
-            </button>
-          ))}
-        </div>
+        <RankStrip narrators={file.narrators} off={off} setOff={setOff} />
 
         <div className="relative mt-3 max-w-md">
           <label htmlFor="time-q" className="sr-only">ابحث عن راوٍ</label>
@@ -250,7 +242,9 @@ export default function TimeView() {
           )}
         </div>
 
-        <p className="naskh mt-5 border-s-2 border-mughra ps-3 text-xl leading-loose">{summary(rows, grid)}</p>
+        <p className="naskh mt-5 border-s-2 border-mughra ps-3 text-xl leading-loose" aria-live="polite">
+          {summary(rows, grid) || "لم تبقَ مجموعة ظاهرة، فاضغط «الكل» لإعادتها."}
+        </p>
       </div>
 
       <div ref={stage} className={`relative mt-4 deaths-${fill}`}>
@@ -292,9 +286,75 @@ export default function TimeView() {
   );
 }
 
+/** One strip cut in the shares of the groups: a pressed part is full of its colour, the others only outlined. */
+function RankStrip({ narrators, off, setOff }: { narrators: Narr[]; off: Set<Group>; setOff: (s: Set<Group>) => void }) {
+  const parts = GROUPS.map((g) => ({ g, n: narrators.filter((x) => x.g === g).length })).filter((p) => p.n);
+  return (
+    <div className="rank-strip" role="group" aria-label="مجموعات المراتب">
+      {parts.map(({ g, n }) => (
+        <Fragment key={g}>
+          <button
+            type="button"
+            className="rank-part"
+            aria-pressed={!off.has(g)}
+            aria-label={`${GROUP_LABEL[g]}: ${men(n)}`}
+            style={{ "--ink": GROUP_COLOR[g], flexGrow: n } as React.CSSProperties}
+            onClick={() => {
+              const next = new Set(off);
+              if (next.has(g)) next.delete(g);
+              else next.add(g);
+              setOff(next);
+            }}
+          >
+            <span>{STRIP_NAME[g]}</span>
+            <b>{n}</b>
+          </button>
+          {/* on a phone the strip folds here, after the great part */}
+          {g === "thiqa" && <i className="rank-fold" aria-hidden="true" />}
+        </Fragment>
+      ))}
+      <button type="button" className="rank-all" aria-pressed={off.size === 0} onClick={() => setOff(new Set())}>
+        الكل
+      </button>
+    </div>
+  );
+}
+
+/** A count that runs to its new value when the groups change. */
+function Count({ value, className }: { value: number; className?: string }) {
+  // the text belongs to the tween: React only writes the first value
+  const [first] = useState(value);
+  const ref = useRef<HTMLSpanElement>(null);
+  const shown = useRef(value);
+  useEffect(() => {
+    const el = ref.current;
+    const from = shown.current;
+    if (!el || from === value) return;
+    const paint = (n: number) => {
+      shown.current = n;
+      el.textContent = n ? String(n) : "";
+    };
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      paint(value);
+      return;
+    }
+    let raf = 0;
+    const start = performance.now();
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / TWEEN_MS);
+      paint(Math.round(from + (value - from) * t));
+      if (t < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [value]);
+  return <span ref={ref} className={className}>{first || ""}</span>;
+}
+
 type TableProps = {
   rows: Row[];
   grid: Narr[][][];
+  every: boolean[][];
   most: number;
   sel: Selection;
   hover: Selection | null;
@@ -328,7 +388,7 @@ function Cell({ r, d, t }: { r: number; d: number; t: TableProps }) {
   const n = t.grid[r][d].length;
   const on = t.sel.r === r && t.sel.d === d;
   const lit = t.hover && (t.hover.d === d || t.hover.r === r);
-  if (!n) {
+  if (!t.every[r][d]) {
     return (
       <td className={lit ? "deaths-lit" : undefined}>
         <span className="deaths-empty"><span className="sr-only">لا أحد</span></span>
@@ -336,7 +396,7 @@ function Cell({ r, d, t }: { r: number; d: number; t: TableProps }) {
     );
   }
   // the square root keeps the small counts visible beside the great ones
-  const strength = Math.round(16 + 84 * Math.sqrt(n / t.most));
+  const strength = n ? Math.round(16 + 84 * Math.sqrt(n / t.most)) : 0;
   const pigment = t.rows[r].id === NONE ? "var(--midad-soft)" : "var(--mughra)";
   const label = t.cellLabel(r, d);
   return (
@@ -346,6 +406,7 @@ function Cell({ r, d, t }: { r: number; d: number; t: TableProps }) {
         data-r={r}
         data-d={d}
         tabIndex={on ? 0 : -1}
+        disabled={!n}
         aria-label={label}
         aria-pressed={on}
         className="deaths-cell"
@@ -360,7 +421,7 @@ function Cell({ r, d, t }: { r: number; d: number; t: TableProps }) {
         onFocus={(e) => t.point({ r, d }, label, e.currentTarget)}
         onBlur={t.leave}
       >
-        {n}
+        <Count value={n} />
       </button>
     </td>
   );
@@ -394,7 +455,7 @@ function WideTable(t: TableProps) {
                   onClick={() => t.pick({ d })}
                   className={on ? "is-on" : undefined}
                 >
-                  <span className="tabular-nums">{n || ""}</span>
+                  <Count value={n} className="tabular-nums" />
                   <i className="deaths-bar" style={{ height: (72 * n) / tallest, "--d": d } as React.CSSProperties} />
                 </button>
                 <b aria-hidden="true">{d % 5 === 0 ? d * 10 : ""}</b>
@@ -467,7 +528,7 @@ function TallTable(t: TableProps) {
                   onClick={() => t.pick({ d })}
                   className={`deaths-total ${t.sel.r === undefined && t.sel.d === d ? "is-on" : ""}`}
                 >
-                  {t.allDecades[d] || ""}
+                  <Count value={t.allDecades[d]} />
                 </button>
               </td>
             </tr>

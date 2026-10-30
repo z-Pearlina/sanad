@@ -468,6 +468,69 @@ html[data-scrolled] .site-mark > span:first-child {
 
 /* ---------------------------------------------------------------- the deaths table (TimeView.tsx)
    A ruled manuscript table: empty cells keep only a faint rule, counted ones are washed in ochre. */
+/* the groups of ranks: one strip cut in their shares, the small ones kept wide enough to press */
+.rank-strip {
+  display: flex;
+  gap: 3px;
+  margin-top: 16px;
+}
+.rank-part {
+  flex: 1 1 0;
+  min-width: 44px;
+  min-height: 42px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0 5px;
+  padding: 2px;
+  font-size: 13px;
+  line-height: 1.2;
+  color: var(--midad);
+  box-shadow: inset 0 0 0 1.5px var(--ink);
+  cursor: pointer;
+}
+.rank-part[aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--raqq);
+}
+@media (hover: hover) {
+  .rank-part[aria-pressed="true"]:hover {
+    opacity: 0.85;
+  }
+}
+.rank-part b {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.rank-fold {
+  display: none;
+}
+.rank-all {
+  flex: none;
+  min-width: 44px;
+  padding-inline: 10px;
+  font-size: 13px;
+  border: 1px solid var(--khatt);
+  cursor: pointer;
+}
+.rank-all[aria-pressed="true"] {
+  color: var(--midad-soft);
+}
+@media (max-width: 860px), (max-height: 500px) and (pointer: coarse) {
+  .rank-strip {
+    flex-wrap: wrap;
+  }
+  .rank-fold {
+    display: block;
+    flex-basis: 100%;
+    height: 0;
+  }
+  .rank-part {
+    min-height: 44px;
+  }
+}
+
 .deaths {
   border-collapse: separate;
   border-spacing: 3px;
@@ -491,14 +554,18 @@ html[data-scrolled] .site-mark > span:first-child {
   font-size: 13px;
   font-variant-numeric: tabular-nums;
   cursor: pointer;
-  transition: background-color 0.15s, box-shadow 0.15s, transform 0.15s;
+  transition: background-color 0.3s, color 0.3s, box-shadow 0.15s, transform 0.15s;
+}
+.deaths-cell:disabled {
+  cursor: default;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--khatt) 55%, transparent);
 }
 @media (hover: hover) {
-  .deaths-cell:hover {
+  .deaths-cell:not(:disabled):hover {
     box-shadow: inset 0 0 0 1.5px var(--midad);
   }
 }
-.deaths-cell:active {
+.deaths-cell:not(:disabled):active {
   transform: scale(0.94);
 }
 .deaths-cell[aria-pressed="true"] {
