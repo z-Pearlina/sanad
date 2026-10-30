@@ -79,8 +79,12 @@ type Item = { href: string; body: React.ReactNode };
 function Panel({ close }: { close: () => void }) {
   const router = useRouter();
   const s = useSearch();
+  const { load } = s;
   const [active, setActive] = useState(0);
   const list = useRef<HTMLDivElement>(null);
+
+  // the names are ready by the time the first letters are typed
+  useEffect(load, [load]);
 
   const number: Item[] = s.number
     ? [{ href: `/hadith/?n=${s.number}`, body: <span className="naskh text-xl leading-normal">الحديث {s.number}</span> }]
