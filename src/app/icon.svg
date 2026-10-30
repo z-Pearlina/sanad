@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- The site's mark: a dotted dara, the circle scribes drew between hadiths and dotted once checked. -->
+  <rect width="64" height="64" rx="14" fill="#efe5cf"/>
+  <circle cx="32" cy="32" r="19" fill="none" stroke="#2b1d14" stroke-width="5.5"/>
+  <circle cx="32" cy="32" r="6.5" fill="#2b1d14"/>
+</svg>
