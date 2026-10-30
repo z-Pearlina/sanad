@@ -1,10 +1,12 @@
 "use client";
 
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import Chain from "./Chain";
 import HadithText from "./HadithText";
 import Salla from "./Salla";
+import ShareButton from "./ShareButton";
 import Timeline from "./Timeline";
 import HadithMap from "./sanad-map/HadithMap";
 import { getCities, getHadith } from "@/lib/data";
@@ -78,18 +80,23 @@ export default function HadithView({ n }: { n: string }) {
             </p>
           )}
         </div>
-        <nav className="flex gap-4 text-sm phone:w-full phone:justify-between" aria-label="التنقل بين الأحاديث">
-          {hadith.prev && (
-            <Link href={`/hadith/?n=${hadith.prev}`} className="text-nila hover:underline phone:flex phone:min-h-11 phone:items-center">
-              → الحديث {hadith.prev}
-            </Link>
-          )}
-          {hadith.next && (
-            <Link href={`/hadith/?n=${hadith.next}`} className="text-nila hover:underline phone:ms-auto phone:flex phone:min-h-11 phone:items-center">
-              الحديث {hadith.next} ←
-            </Link>
-          )}
-        </nav>
+        <div className="flex items-center gap-3 text-sm phone:w-full">
+          <ShareButton title={`الحديث ${hadith.n} من صحيح البخاري`} />
+          <nav className="flex gap-3 phone:flex-1 phone:justify-between" aria-label="التنقل بين الأحاديث">
+            {hadith.prev && (
+              <Link href={`/hadith/?n=${hadith.prev}`} className="inline-flex items-center gap-1 text-nila phone:min-h-11">
+                <ChevronRight size={16} strokeWidth={1.5} aria-hidden="true" />
+                الحديث {hadith.prev}
+              </Link>
+            )}
+            {hadith.next && (
+              <Link href={`/hadith/?n=${hadith.next}`} className="inline-flex items-center gap-1 text-nila phone:ms-auto phone:min-h-11">
+                الحديث {hadith.next}
+                <ChevronLeft size={16} strokeWidth={1.5} aria-hidden="true" />
+              </Link>
+            )}
+          </nav>
+        </div>
       </header>
 
       <section className="py-6" aria-label="نص الحديث">
@@ -148,7 +155,7 @@ export default function HadithView({ n }: { n: string }) {
             <Timeline isnad={isnad} step={step} focus={focus} onPoint={setFocus} />
           </section>
         </div>
-        <section aria-labelledby="place-h" className="order-1 lg:sticky lg:top-8 lg:order-2 lg:self-start">
+        <section aria-labelledby="place-h" className="order-1 lg:sticky lg:top-[calc(var(--below-header)+20px)] lg:order-2 lg:self-start">
           <h2 id="place-h" className="naskh mb-3 text-2xl font-bold">المكان</h2>
           {/* keyed so each chain is told again from its Companion */}
           <HadithMap key={isnad.ordinal} nodes={nodes} label={mapLabel} focus={focus} onStep={setStep} />

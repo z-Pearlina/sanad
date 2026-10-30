@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import CountUp from "./CountUp";
 import Dara from "./Dara";
+import ShareButton from "./ShareButton";
 import NarratorMap from "./sanad-map/NarratorMap";
 import { getCities, getNarrator, getSpread } from "@/lib/data";
 import { ERA_TEXT, GROUP_COLOR, GROUP_LABEL, NOUNS, deathText, tabaqaName } from "@/lib/labels";
@@ -50,7 +51,10 @@ export default function NarratorView({ id }: { id: string }) {
   return (
     <article className="mx-auto max-w-5xl px-4 py-6">
       <header className="border-b border-khatt pb-6">
-        <p className="text-sm text-midad-soft">الترجمة {p.id} في تقريب التهذيب</p>
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-sm text-midad-soft">الترجمة {p.id} في تقريب التهذيب</p>
+          <ShareButton title={`${p.short ?? p.name} في تقريب التهذيب`} />
+        </div>
         <h1 className="naskh mt-1 text-4xl font-bold leading-snug sm:text-5xl sm:leading-snug">{p.short ?? p.name}</h1>
         {p.short && p.short !== p.name && <p className="naskh text-lg leading-relaxed text-midad-soft">{p.name}</p>}
 

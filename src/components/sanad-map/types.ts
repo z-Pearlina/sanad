@@ -1,3 +1,5 @@
+import type { NavIcon } from "@/lib/nav";
+
 // Shapes of public/data/map.json (scripts/build_map_data.py)
 // and public/data/geometry.json (scripts/build_geometry.mjs).
 
@@ -94,4 +96,4 @@ export type Geometry = {
   labels: GeoLabel[];
 };
 
-export type NavLink = { href: string; label: string };
+export type NavLink = { href: string; label: string; icon?: NavIcon };

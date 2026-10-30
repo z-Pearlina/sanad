@@ -169,6 +169,7 @@ npm run data       # hadith and narrator files, the map, the insights, the searc
 - «تقريب التهذيب» لابن حجر العسقلاني من [OpenITI](https://openiti.org)، بتحقيق محمد عوامة (دار الرشيد، 1986).
 - عناوين كتب الصحيح بالعربية من [AhmedBaset/hadith-json](https://github.com/AhmedBaset/hadith-json).
 - خريطة الأساس من [Natural Earth](https://www.naturalearthdata.com) (ملكية عامة) عبر [world-atlas](https://github.com/topojson/world-atlas) (رخصة ISC)، والرسم بـ[d3](https://d3js.org) (رخصة ISC).
+- أيقونات الواجهة من [Lucide](https://lucide.dev) (رخصة ISC).
 - الخطوط Amiri وIBM Plex Sans Arabic وAref Ruqaa (رخصة SIL OFL 1.1) عبر Fontsource.
 
 </div>
@@ -187,4 +188,4 @@ npm run data       # hadith and narrator files, the map, the insights, the searc
 - **Insights:** four questions answered from the data, with every figure computed: how the transmission words changed across the generations, where each generation lived, how many men stand in a full chain, and who is the most connected narrator. Also a table of books and an *order the chain* game.
 - **On phones:** the map fills the screen above a three-stop sheet, city names never overlap, the drawing is lighter, and maps inside pages open full screen. The desktop is untouched by any of it.
 - **Tech:** Next.js 16 static export, TypeScript, Tailwind 4; data pre-built as JSON by Python from the isnady database; maps drawn with d3 on a pre-projected Natural Earth base map. No server and no database at run time.
-- **Sources:** isnady (MIT), hadith texts from fawazahmed0/hadith-api (Unlicense), Taqrib al-Tahdhib from OpenITI, the Ummah API, Natural Earth (public domain) via world-atlas (ISC), d3 (ISC), fonts under the SIL OFL.
+- **Sources:** isnady (MIT), hadith texts from fawazahmed0/hadith-api (Unlicense), Taqrib al-Tahdhib from OpenITI, the Ummah API, Natural Earth (public domain) via world-atlas (ISC), d3 (ISC), Lucide icons (ISC), fonts under the SIL OFL.

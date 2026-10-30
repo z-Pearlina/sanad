@@ -1,8 +1,11 @@
 "use client";
 
+import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { NAV, TAGLINE } from "@/lib/nav";
+import SiteNav from "./SiteNav";
+import ThemeButton from "./ThemeButton";
+import { TAGLINE } from "@/lib/nav";
 
 /** The compact header on phones: the wordmark, and a menu with the sections and the tagline. */
 export default function PhoneBar() {
@@ -25,6 +28,7 @@ export default function PhoneBar() {
     };
   }, [open]);
 
+  const Icon = open ? X : Menu;
   return (
     <div ref={bar} className="phone-bar">
       <Link href="/" className="phone-bar-mark font-ruqaa" aria-label="سَنَد: الصفحة الرئيسية">
@@ -38,18 +42,13 @@ export default function PhoneBar() {
         aria-controls="phone-menu"
         onClick={() => setOpen(!open)}
       >
-        <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
-          {open ? <path d="M5 5l12 12M17 5L5 17" /> : <path d="M3 6h16M3 11h16M3 16h16" />}
-        </svg>
+        <Icon size={22} strokeWidth={1.5} aria-hidden="true" />
       </button>
       {open && (
         <nav id="phone-menu" className="phone-menu" aria-label="أقسام الموقع">
           <p>{TAGLINE}</p>
-          {NAV.map((n) => (
-            <Link key={n.href} href={n.href} onClick={() => setOpen(false)}>
-              {n.label}
-            </Link>
-          ))}
+          <SiteNav onPick={() => setOpen(false)} />
+          <ThemeButton className="phone-menu-theme" named />
         </nav>
       )}
     </div>

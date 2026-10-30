@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
+import ThemeButton from "../ThemeButton";
 import { mountSanadMap } from "./engine";
 import type { Geometry, MapData, NavLink } from "./types";
 import "./sanad-map.css";
@@ -46,6 +48,8 @@ export default function SanadMap({
 }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const router = useRouter();
+  // the map has no site header: the appearance button stands among its tools
+  const [tools, setTools] = useState<HTMLElement | null>(null);
   // a string key, so a new array with the same links does not redraw the map
   const navKey = JSON.stringify(nav ?? []);
 
@@ -69,6 +73,7 @@ export default function SanadMap({
           nav: JSON.parse(navKey) as NavLink[],
           navigate: (href) => router.push(href),
         });
+        setTools(root.querySelector<HTMLElement>(".sm-tools"));
       })
       .catch(() => {
         if (controller.signal.aborted) return;
@@ -82,5 +87,10 @@ export default function SanadMap({
     };
   }, [dataUrl, geometryUrl, hadithHref, narratorHref, navKey, autoplay, cooperative, router]);
 
-  return <div ref={ref} className={className ? `sanad-map ${className}` : "sanad-map"} dir="rtl" lang="ar" />;
+  return (
+    <>
+      <div ref={ref} className={className ? `sanad-map ${className}` : "sanad-map"} dir="rtl" lang="ar" />
+      {tools && createPortal(<ThemeButton className="sm-theme" />, tools)}
+    </>
+  );
 }

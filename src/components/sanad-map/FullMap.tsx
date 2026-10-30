@@ -1,5 +1,6 @@
 "use client";
 
+import { Map as MapIcon, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 type Props = {
@@ -39,13 +40,12 @@ export default function FullMap({ children, onChange }: Props) {
       {children}
       {full ? (
         <button type="button" className="sm-full-close" onClick={() => window.history.back()}>
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
-            <path d="M3 3l10 10M13 3L3 13" />
-          </svg>
+          <X size={16} strokeWidth={1.5} aria-hidden="true" />
           إغلاق
         </button>
       ) : (
         <button type="button" className="sm-open-map" onClick={() => setFull(true)}>
+          <MapIcon size={16} strokeWidth={1.5} aria-hidden="true" />
           افتح الخريطة
         </button>
       )}

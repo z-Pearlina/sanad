@@ -1,8 +1,10 @@
 "use client";
 
+import { ChevronUp, X } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { CountNum } from "./CountUp";
 import Dara from "./Dara";
 import { PHONE_QUERY } from "./sanad-map/phone";
 import { getCities, getData } from "@/lib/data";
@@ -199,7 +201,7 @@ export default function TimeView() {
         <h1 className="naskh text-4xl font-bold leading-snug">الزمان</h1>
         <p className="mt-1 max-w-3xl text-midad-soft">
           جدول الوفيات: كم توفي من رجال أسانيد البخاري في كل عقد، وفي كل إقليم.{" "}
-          <strong className="font-semibold text-midad">{file.dated} من {file.total} راوياً لهم سنة وفاة معروفة.</strong>
+          <strong className="font-semibold text-midad"><CountNum value={file.dated} /> من <CountNum value={file.total} /> راوياً لهم سنة وفاة معروفة.</strong>
         </p>
 
         <div className="mt-4 flex flex-wrap items-center gap-2 phone:flex-nowrap phone:overflow-x-auto" role="group" aria-label="مجموعات المراتب">
@@ -275,7 +277,10 @@ export default function TimeView() {
       {phone && !sheetOpen && (
         <button type="button" onClick={() => setSheet(true)} className="deaths-peek">
           <span>{title}</span>
-          <span className="shrink-0 text-nila">رجالها</span>
+          <span className="flex shrink-0 items-center gap-1 text-nila">
+            رجالها
+            <ChevronUp size={16} strokeWidth={1.5} aria-hidden="true" />
+          </span>
         </button>
       )}
       {phone && sheetOpen && (
@@ -561,7 +566,7 @@ function BottomSheet({ title, onClose, children }: { title: string; onClose: () 
         <i aria-hidden="true" />
         <h2 className="naskh text-lg font-bold leading-snug">{title}</h2>
         <button type="button" onClick={onClose} aria-label="إغلاق" className="grid size-11 shrink-0 place-items-center">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13" /></svg>
+          <X size={18} strokeWidth={1.5} aria-hidden="true" />
         </button>
       </div>
       <div className="deaths-sheet-body">{children}</div>

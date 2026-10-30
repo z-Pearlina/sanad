@@ -1,5 +1,6 @@
 "use client";
 
+import { ChevronDown, ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -138,8 +139,9 @@ export default function SearchBox() {
       </form>
       <div id="search-status" aria-live="polite" className="mt-3 max-w-3xl">
         {number && (
-          <Link href={`/hadith/?n=${number}`} className="naskh block border-b border-khatt py-2 text-xl text-nila hover:underline phone:min-h-11">
-            الحديث {number} ←
+          <Link href={`/hadith/?n=${number}`} className="naskh flex items-center gap-1 border-b border-khatt py-2 text-xl text-nila phone:min-h-11">
+            الحديث {number}
+            <ChevronLeft size={18} strokeWidth={1.5} aria-hidden="true" />
           </Link>
         )}
         {!number && q.length >= 2 && (
@@ -172,7 +174,8 @@ export default function SearchBox() {
                   ))}
                 </ol>
                 {hasMore && answered && (
-                  <button type="button" onClick={more} className="mt-2 rounded-sm border border-khatt px-4 py-2 text-sm phone:min-h-11">
+                  <button type="button" onClick={more} className="mt-2 inline-flex items-center gap-1.5 rounded-sm border border-khatt px-4 py-2 text-sm phone:min-h-11">
+                    <ChevronDown size={16} strokeWidth={1.5} aria-hidden="true" />
                     المزيد
                   </button>
                 )}

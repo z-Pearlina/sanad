@@ -171,7 +171,7 @@
 .sanad-map .sm-wordmark { font-family: var(--sm-font-mark); font-weight: 700; font-size: 58px; line-height: 1.1; color: var(--sm-midad); margin: 0; }
 .sanad-map .sm-tagline { font-size: 15px; color: var(--sm-midad-soft); margin: 0; }
 .sanad-map .sm-nav { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 6px; pointer-events: auto; }
-.sanad-map .sm-nav a { font-size: 13.5px; font-weight: 500; color: var(--sm-nila); text-decoration: none; }
+.sanad-map .sm-nav a { display: inline-flex; align-items: center; gap: 4px; font-size: 13.5px; font-weight: 500; color: var(--sm-nila); text-decoration: none; }
 .sanad-map .sm-nav a:hover,
 .sanad-map .sm-nav a:focus-visible { text-decoration: underline; text-underline-offset: 4px; }
 
@@ -267,7 +267,7 @@
 .sanad-map .sm-chain .sm-auto { font-family: var(--sm-font-ui); font-weight: 400; font-size: 11px; border: 1px dashed var(--sm-midad-soft); padding: 0 6px; border-radius: 999px; margin-inline-start: 6px; color: var(--sm-midad-soft); white-space: nowrap; }
 .sanad-map .sm-chain .sm-prophet .sm-who { color: var(--sm-mughra); }
 .sanad-map .sm-j-controls { display: flex; gap: 8px; flex-wrap: wrap; }
-.sanad-map .sm-btn { all: unset; cursor: pointer; font-size: 13.5px; padding: 6px 12px; border: 1px solid var(--sm-khatt); background: var(--sm-raqq); }
+.sanad-map .sm-btn { all: unset; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 4px; font-size: 13.5px; padding: 6px 12px; border: 1px solid var(--sm-khatt); background: var(--sm-raqq); }
 .sanad-map .sm-btn:hover,
 .sanad-map .sm-btn:focus-visible { border-color: var(--sm-nila); color: var(--sm-nila); }
 .sanad-map .sm-btn:disabled { opacity: 0.45; cursor: default; }
@@ -283,7 +283,7 @@
   background: var(--sm-leaf); border: 1px solid var(--sm-khatt); box-shadow: 0 8px 24px var(--sm-shadow);
 }
 .sanad-map .sm-play { all: unset; cursor: pointer; width: 38px; height: 38px; border-radius: 50%; border: 1.5px solid var(--sm-zinjafr); display: grid; place-items: center; color: var(--sm-zinjafr); flex: none; box-sizing: border-box; }
-.sanad-map .sm-play svg { width: 14px; height: 14px; fill: currentColor; display: block; }
+.sanad-map .sm-play svg { width: 18px; height: 18px; }
 .sanad-map .sm-play:hover,
 .sanad-map .sm-play:focus-visible { background: color-mix(in srgb, var(--sm-zinjafr) 10%, transparent); }
 .sanad-map .sm-gens { --sm-gen-w: 34px; display: grid; grid-template-columns: repeat(12, var(--sm-gen-w)); grid-template-rows: auto auto; row-gap: 4px; position: relative; }
@@ -314,6 +314,19 @@
 .sanad-map .sm-journey-btn svg { display: block; flex: none; }
 .sanad-map .sm-journey-btn:hover,
 .sanad-map .sm-journey-btn:focus-visible { background: color-mix(in srgb, var(--sm-zinjafr) 10%, var(--sm-raqq)); }
+.sanad-map .sm-theme { display: inline-flex; align-items: center; gap: 6px; padding: 9px 12px; cursor: pointer; background: var(--sm-leaf); border: 1px solid var(--sm-khatt); color: var(--sm-midad); font-size: 13.5px; }
+.sanad-map .sm-theme:hover,
+.sanad-map .sm-theme:focus-visible { border-color: var(--sm-nila); color: var(--sm-nila); }
+
+/* every control answers the pointer the same way */
+.sanad-map :is(.sm-btn, .sm-back, .sm-j-card, .sm-journey-btn, .sm-theme, .sm-play, .sm-gen, .sm-zoom button, .sm-bars button, .sm-spark button, .sm-nav a, .sm-who) {
+  transition: color 0.15s, background-color 0.15s, border-color 0.15s, opacity 0.15s;
+}
+.sanad-map :is(.sm-btn, .sm-back, .sm-j-card, .sm-journey-btn, .sm-theme, .sm-play, .sm-zoom button, .sm-bars button, .sm-spark button):active:not(:disabled) { opacity: 0.68; }
+
+/* icons drawn by the engine (icons.ts): a thin line in the colour of the text */
+.sanad-map .sm-i { display: block; flex: none; width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.sanad-map .sm-flip { transform: scaleX(-1); }
 
 .sanad-map .sm-compass { position: absolute; z-index: 6; left: max(36px, calc(env(safe-area-inset-left, 0px) + 26px)); bottom: max(34px, calc(env(safe-area-inset-bottom, 0px) + 26px)); width: 64px; height: 76px; pointer-events: none; display: block; }
 .sanad-map .sm-compass path { fill: var(--sm-raqq); stroke: var(--sm-midad-soft); stroke-width: 1; }
@@ -379,7 +392,8 @@
   .sanad-map .sm-sheet-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 0 6px; min-height: 38px; }
   .sanad-map .sm-sheet-title { font-family: var(--sm-font-text); font-weight: 700; font-size: 20px; line-height: 1.2; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .sanad-map .sm-sheet .sm-tools { flex-direction: column; }
-  .sanad-map .sm-sheet .sm-tools .sm-journey-btn { display: none; }
+  .sanad-map .sm-sheet .sm-tools .sm-journey-btn,
+  .sanad-map .sm-sheet .sm-tools .sm-theme { display: none; }
   .sanad-map .sm-sheet-row .sm-journey-btn { position: relative; flex: none; padding: 6px 10px; font-size: 13px; background: var(--sm-raqq); }
   .sanad-map .sm-sheet-row .sm-journey-btn::after { content: ""; position: absolute; inset: -6px 0; }
   .sanad-map .sm-zoom button { width: 44px; height: 44px; }
@@ -406,7 +420,7 @@
   .sanad-map .sm-panel.sm-journey-panel .sm-title { font-size: 23px !important; }
   .sanad-map .sm-quote { font-size: 17px; }
   .sanad-map .sm-back { min-height: 44px; }
-  .sanad-map .sm-btn { display: inline-grid; place-items: center; min-height: 44px; text-align: center; }
+  .sanad-map .sm-btn { min-height: 44px; text-align: center; }
   .sanad-map .sm-bars button { min-height: 44px; display: inline-flex; align-items: center; }
   .sanad-map .sm-spark { height: 62px; }
   .sanad-map .sm-spark button { min-height: 44px; }

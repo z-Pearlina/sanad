@@ -6,6 +6,7 @@ import { select, type Selection } from "d3-selection";
 import { zoom as d3zoom, zoomIdentity, type D3ZoomEvent, type ZoomBehavior, type ZoomTransform } from "d3-zoom";
 import "d3-transition";
 import { easeCubicInOut } from "d3-ease";
+import { ICON } from "./icons";
 import type { Band, City, GeoLabel, Geometry, JourneyNode } from "./types";
 
 export type XY = [number, number];
@@ -195,9 +196,9 @@ export function wireZoomButtons(
 
 export const ZOOM_MARKUP = `
     <div class="sm-zoom" role="group" aria-label="التكبير">
-      <button type="button" data-zoom="in" aria-label="تكبير">+</button>
-      <button type="button" data-zoom="out" aria-label="تصغير">−</button>
-      <button type="button" data-zoom="reset" aria-label="إعادة الخريطة إلى وضعها">⟲</button>
+      <button type="button" data-zoom="in" aria-label="تكبير">${ICON.plus}</button>
+      <button type="button" data-zoom="out" aria-label="تصغير">${ICON.minus}</button>
+      <button type="button" data-zoom="reset" aria-label="إعادة الخريطة إلى وضعها">${ICON.again}</button>
     </div>`;
 
 // ---------------------------------------------------------------- a chain on the map

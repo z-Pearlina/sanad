@@ -1,3 +1,4 @@
+import { BookOpen, Map as MapIcon, Search } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import PageFrame from "@/components/PageFrame";
@@ -19,9 +20,18 @@ export default function NotFound() {
           دارة غُفل: لم نعرف صاحب هذا الرابط، فلعله نُقل أو كُتب على غير وجهه.
         </p>
         <nav className="mt-8 flex gap-6 text-nila" aria-label="إلى أين؟">
-          <Link href="/" className="underline underline-offset-4 phone:flex phone:min-h-11 phone:min-w-11 phone:items-center phone:justify-center">الخريطة</Link>
-          <Link href="/search/" className="underline underline-offset-4 phone:flex phone:min-h-11 phone:min-w-11 phone:items-center phone:justify-center">البحث</Link>
-          <Link href="/books/" className="underline underline-offset-4 phone:flex phone:min-h-11 phone:min-w-11 phone:items-center phone:justify-center">الكتب</Link>
+          <Link href="/" className="inline-flex items-center gap-1 underline underline-offset-4 phone:min-h-11 phone:min-w-11 phone:justify-center">
+            <MapIcon size={16} strokeWidth={1.5} aria-hidden="true" />
+            الخريطة
+          </Link>
+          <Link href="/search/" className="inline-flex items-center gap-1 underline underline-offset-4 phone:min-h-11 phone:min-w-11 phone:justify-center">
+            <Search size={16} strokeWidth={1.5} aria-hidden="true" />
+            البحث
+          </Link>
+          <Link href="/books/" className="inline-flex items-center gap-1 underline underline-offset-4 phone:min-h-11 phone:min-w-11 phone:justify-center">
+            <BookOpen size={16} strokeWidth={1.5} aria-hidden="true" />
+            الكتب
+          </Link>
         </nav>
       </main>
     </PageFrame>

@@ -203,6 +203,9 @@ export default function AboutPage() {
           <Source name="AhmedBaset/hadith-json" href="https://github.com/AhmedBaset/hadith-json">
             عناوين كتب البخاري بالعربية.
           </Source>
+          <Source name="Lucide" href="https://lucide.dev" license="ISC">
+            أيقونات الواجهة.
+          </Source>
           <Source name="Natural Earth" href="https://www.naturalearthdata.com" license="ملكية عامة">
             خريطة الأساس: اليابسة عبر حزمة world-atlas (رخصة ISC)، والأنهار والبحيرات بمقياس 1:50m.
           </Source>

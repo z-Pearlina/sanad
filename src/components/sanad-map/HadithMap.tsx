@@ -1,8 +1,10 @@
 "use client";
 
+import { RotateCcw } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { CountNum } from "../CountUp";
 import FullMap from "./FullMap";
-import { count, fmt } from "./arabic";
+import { count } from "./arabic";
 import { mountChainMap, type ChainMapControls, type ChainSummary } from "./chain";
 import { getData } from "@/lib/data";
 import type { City, Geometry, JourneyNode } from "./types";
@@ -82,7 +84,7 @@ export default function HadithMap({ nodes, label, focus, onStep }: Props) {
           <div className="chain-summary flex flex-wrap items-end gap-x-6 gap-y-3 border-y border-khatt py-3" aria-live="polite">
             <Stat big={count(summary.men, "rajul")} small="في السند" />
             <Stat big={count(summary.places.length, summary.regions ? "balad" : "city")} small="مرّ بها" />
-            {summary.places.length > 1 && <Stat big={`${fmt(summary.km)} كم`} small="تقريباً بين مواطنهم" />}
+            {summary.places.length > 1 && <Stat big={<><CountNum value={summary.km} /> كم</>} small="تقريباً بين مواطنهم" />}
             {years.length > 0 && (
               <Stat
                 big={years.length > 1 ? `${Math.min(...years)}–${Math.max(...years)}هـ` : `${years[0]}هـ`}
@@ -92,8 +94,9 @@ export default function HadithMap({ nodes, label, focus, onStep }: Props) {
             <button
               type="button"
               onClick={() => controls.current?.replay()}
-              className="ms-auto rounded-sm border border-nila px-3 py-1.5 text-sm text-nila hover:bg-nila hover:text-raqq phone:min-h-11"
+              className="ms-auto inline-flex items-center gap-1.5 rounded-sm border border-nila px-3 py-1.5 text-sm text-nila hover:bg-nila hover:text-raqq phone:min-h-11"
             >
+              <RotateCcw size={16} strokeWidth={1.5} aria-hidden="true" />
               أعد الرسم
             </button>
           </div>
@@ -108,7 +111,7 @@ export default function HadithMap({ nodes, label, focus, onStep }: Props) {
   );
 }
 
-function Stat({ big, small }: { big: string; small: string }) {
+function Stat({ big, small }: { big: React.ReactNode; small: string }) {
   return (
     <div className="flex flex-col">
       <strong className="naskh text-2xl leading-tight tabular-nums">{big}</strong>

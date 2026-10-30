@@ -9,6 +9,7 @@ import "d3-transition";
 import { easeCubicOut } from "d3-ease";
 import { interpolateRound } from "d3-interpolate";
 import { ORD, count, esc, fmt, words, type Noun } from "./arabic";
+import { ICON, NAV_ICON } from "./icons";
 import {
   ANCHOR, DX, DY, PLACE, WORLD_MARKUP, ZOOM_MARKUP, centerOn, cityViews, createChainLayer, createZoom, drawBase,
   fitTo as fitView, journeyPlaces, journeySummary, placeGeoLabels, placeNodes, wireZoomButtons,
@@ -38,11 +39,9 @@ type Mode = "gen" | "city" | "list" | "journey";
 
 // cities whose names stay visible at every zoom level
 const MAJOR = new Set(["madina", "makka", "kufa", "basra", "baghdad", "dimashq", "misr", "marw", "bukhara", "sanaa"]);
-const ICON_PLAY = `<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M11 1.5v11L2.5 7z"/></svg>`;
-const ICON_PAUSE = `<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 2h3v10H3zM8 2h3v10H8z"/></svg>`;
 const CORNER = `<path d="M0-10 3-3 10 0 3 3 0 10-3 3-10 0-3-3Z"/><circle r="2"/>`;
 const JOURNEY_BUTTON = `
-      <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><circle cx="2.5" cy="11.5" r="2" fill="currentColor"/><circle cx="11.5" cy="2.5" r="2" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M3.6 10.2C5 6 8 8 10.4 3.7" fill="none" stroke="currentColor" stroke-width="1.4" stroke-dasharray="2 2"/></svg>
+      ${ICON.route}
       تتبّع رحلة حديث`;
 const PHONE_HINT = "اسحب بإصبع، وكبّر بإصبعين، واضغط على مدينة";
 const HINT_SEEN = "sanad-map-hint-seen";
@@ -50,7 +49,7 @@ const HINT_SEEN = "sanad-map-hint-seen";
 function markup(nav: NavLink[], cooperative: boolean, hint: string): string {
   const links = nav.length
     ? `<nav class="sm-nav" aria-label="أقسام الموقع">${nav
-        .map((l) => `<a href="${esc(l.href)}"${l.href.startsWith("/") ? " data-internal" : ""}>${esc(l.label)}</a>`)
+        .map((l) => `<a href="${esc(l.href)}"${l.href.startsWith("/") ? " data-internal" : ""}>${l.icon ? NAV_ICON[l.icon] : ""}${esc(l.label)}</a>`)
         .join("")}</nav>`
     : "";
   return `
@@ -693,7 +692,7 @@ export function mountSanadMap(
       arr.map((f) => `<b>${esc(cityById.get(f[key])?.name ?? f[key])}</b> (${fmt(f.n)})`).join("، ");
     headTitle.textContent = c.name;
     panel.innerHTML = `
-      <button type="button" class="sm-back">→ عودة إلى الطبقة ${ORD[gen]}</button>
+      <button type="button" class="sm-back">${ICON.prev}عودة إلى الطبقة ${ORD[gen]}</button>
       <h2 class="sm-title">${esc(c.name)}</h2>
       ${c.region ? `<div class="sm-chips"><span class="sm-chip">إقليم</span></div>` : ""}
       <p class="sm-big">${n ? `<b>${fmt(n)}</b> ${esc(words(n, "rawi"))}` : "لا رواة"} في الطبقة ${ORD[gen]}
@@ -752,7 +751,7 @@ export function mountSanadMap(
 
   // ---------------------------------------------------------------- play
   function setPlayIcon() {
-    playBtn.innerHTML = playing ? ICON_PAUSE : ICON_PLAY;
+    playBtn.innerHTML = playing ? ICON.pause : ICON.play;
     playBtn.setAttribute("aria-label", playing ? "إيقاف" : "تشغيل الطبقات");
   }
   function startPlay(stopAt = 12) {
@@ -858,7 +857,7 @@ export function mountSanadMap(
     headTitle.textContent = "تتبّع رحلة حديث";
     const allReach = DATA.journeys.every((j) => j.prophet);
     panel.innerHTML = `
-      <button type="button" class="sm-back">→ عودة إلى الطبقات</button>
+      <button type="button" class="sm-back">${ICON.prev}عودة إلى الطبقات</button>
       <div><div class="sm-kicker">أحاديث مختارة</div><h2 class="sm-title">تتبّع رحلة حديث</h2></div>
       <p class="sm-note sm-plain" style="font-size:13.5px">اختر حديثاً لترى رجال سنده واحداً بعد واحد، ${allReach ? "من النبي ﷺ" : "من أوله"} إلى البخاري، في مواطنهم على الخريطة.</p>
       <ul class="sm-j-list">${DATA.journeys
@@ -989,7 +988,7 @@ export function mountSanadMap(
     panel.classList.add("sm-journey-panel");
     const link = hadithHref(j.number);
     panel.innerHTML = `
-      <button type="button" class="sm-back">→ عودة إلى الطبقات</button>
+      <button type="button" class="sm-back">${ICON.prev}عودة إلى الطبقات</button>
       <div><div class="sm-kicker">صحيح البخاري، رقم ${j.number}${link ? ` · <a class="sm-link" href="${esc(link)}" data-internal>صفحة الحديث</a>` : ""}</div>
       <h2 class="sm-title" style="font-size:26px">«${esc(j.title)}»</h2></div>
       <div class="sm-j-controls"></div>
@@ -1036,11 +1035,11 @@ export function mountSanadMap(
     if (!box || !journey) return;
     const atEnd = jStep >= journey.nodes.length - 1 && jVisible === journey.nodes.length;
     const steps = `
-      <button type="button" class="sm-btn" data-act="prev" ${jStep <= 0 ? "disabled" : ""}>السابق</button>
-      <button type="button" class="sm-btn sm-primary" data-act="play">${atEnd ? "أعد الرحلة" : jPlaying ? "إيقاف" : "متابعة"}</button>
-      <button type="button" class="sm-btn" data-act="next" ${atEnd ? "disabled" : ""}>التالي</button>`;
+      <button type="button" class="sm-btn" data-act="prev" ${jStep <= 0 ? "disabled" : ""}>${ICON.prev}السابق</button>
+      <button type="button" class="sm-btn sm-primary" data-act="play">${atEnd ? `${ICON.again}أعد الرحلة` : jPlaying ? `${ICON.pause}إيقاف` : `${ICON.play}متابعة`}</button>
+      <button type="button" class="sm-btn" data-act="next" ${atEnd ? "disabled" : ""}>التالي${ICON.next}</button>`;
     box.innerHTML = `${steps}
-      <button type="button" class="sm-btn" data-act="other">حديث آخر</button>`;
+      <button type="button" class="sm-btn" data-act="other">${ICON.route}حديث آخر</button>`;
     nowControls.innerHTML = steps;
     const on = (act: string, fn: () => void) =>
       [box, nowControls].forEach((b) => b.querySelector(`[data-act="${act}"]`)?.addEventListener("click", fn));

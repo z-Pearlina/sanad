@@ -5,9 +5,57 @@ import { nounFor, type Forms } from "@/lib/labels";
 
 const fmt = (n: number) => n.toLocaleString("en-US");
 
+/** Calls paint from 0 up to the value once the element comes into view; at once with reduced motion. */
+function countUp(el: Element, value: number, paint: (n: number) => void) {
+  if (value === 0 || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    paint(value);
+    return () => {};
+  }
+  let raf = 0;
+  const watcher = new IntersectionObserver(
+    (entries) => {
+      if (!entries.some((e) => e.isIntersecting)) return;
+      watcher.disconnect();
+      const start = performance.now();
+      const tick = (now: number) => {
+        const t = Math.min(1, (now - start) / 1100);
+        paint(Math.round(value * (1 - (1 - t) ** 3)));
+        if (t < 1) raf = requestAnimationFrame(tick);
+      };
+      raf = requestAnimationFrame(tick);
+    },
+    { threshold: 0.6 },
+  );
+  watcher.observe(el);
+  return () => {
+    watcher.disconnect();
+    cancelAnimationFrame(raf);
+  };
+}
+
+/** A figure inside a sentence. The real number stays in the text for screen readers. */
+export function CountNum({ value }: { value: number }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    return countUp(el, value, (n) => {
+      el.textContent = fmt(n);
+    });
+  }, [value]);
+  return (
+    <>
+      <span className="sr-only">{fmt(value)}</span>
+      <span ref={ref} aria-hidden="true" className="tabular-nums">
+        0
+      </span>
+    </>
+  );
+}
+
 /**
  * A figure that counts up once it comes into view, its noun agreeing with
- * the number as it goes («3 شيوخ»، «11 شيخاً»). Shown at once with reduced motion.
+ * the number as it goes («3 شيوخ»، «11 شيخاً»).
  */
 export default function CountUp({ value, forms, label }: { value: number; forms: Forms; label: string }) {
   const numRef = useRef<HTMLElement>(null);
@@ -17,34 +65,10 @@ export default function CountUp({ value, forms, label }: { value: number; forms:
     const num = numRef.current;
     const noun = nounRef.current;
     if (!num || !noun) return;
-    const paint = (n: number) => {
+    return countUp(num, value, (n) => {
       num.textContent = fmt(n);
       noun.textContent = nounFor(n, forms);
-    };
-    if (value === 0 || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      paint(value);
-      return;
-    }
-    let raf = 0;
-    const watcher = new IntersectionObserver(
-      (entries) => {
-        if (!entries.some((e) => e.isIntersecting)) return;
-        watcher.disconnect();
-        const start = performance.now();
-        const tick = (now: number) => {
-          const t = Math.min(1, (now - start) / 1100);
-          paint(Math.round(value * (1 - (1 - t) ** 3)));
-          if (t < 1) raf = requestAnimationFrame(tick);
-        };
-        raf = requestAnimationFrame(tick);
-      },
-      { threshold: 0.6 },
-    );
-    watcher.observe(num);
-    return () => {
-      watcher.disconnect();
-      cancelAnimationFrame(raf);
-    };
+    });
   }, [value, forms]);
 
   return (

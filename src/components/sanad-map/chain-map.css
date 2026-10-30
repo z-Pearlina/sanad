@@ -33,7 +33,7 @@
   .sanad-map.sm-embed .sm-tools { display: none; }
   .sanad-map.sm-embed .sm-svg { touch-action: auto; pointer-events: none; }
   .sm-open-map {
-    display: flex; align-items: center; justify-content: center; width: 100%; min-height: 44px;
+    display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; min-height: 44px;
     border: 1px solid var(--nila); border-top: 0; color: var(--nila); font-size: 15px; font-weight: 500;
   }
 }

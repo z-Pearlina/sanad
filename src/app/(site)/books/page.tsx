@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { CountNum } from "@/components/CountUp";
 import { hadithCount } from "@/lib/labels";
 import { readData } from "@/lib/readData";
 
@@ -18,7 +19,7 @@ export default function BooksPage() {
     <main className="mx-auto max-w-4xl px-4 py-8">
       <h1 className="naskh text-4xl font-bold leading-snug">فهرس كتب صحيح البخاري</h1>
       <p className="mt-2 max-w-2xl text-midad-soft">
-        {sections.length} كتاباً تضم {stats.hadiths} حديثاً بترقيم النسخة المستعملة.
+        <CountNum value={sections.length} /> كتاباً تضم <CountNum value={stats.hadiths} /> حديثاً بترقيم النسخة المستعملة.
         {stats.hadithsWithoutBook > 0 && ` ${hadithCount(stats.hadithsWithoutBook)} لم تُنسب في البيانات إلى كتاب.`} اضغط على
         كتاب لتفتح أول حديث فيه.
       </p>
@@ -37,11 +38,11 @@ export default function BooksPage() {
       </div>
       <ol>
         {sections.map((s) => (
-          <li key={s.no} id={`book-${s.no}`} className="scroll-mt-10 target:bg-raml">
+          <li key={s.no} id={`book-${s.no}`} className="target:bg-raml">
             <Link
               href={`/hadith/?n=${s.first}`}
               title={s.en ?? undefined}
-              className="group grid grid-cols-[2.25rem_minmax(0,1fr)_auto] items-baseline gap-x-3 border-b border-khatt py-2.5 transition-colors hover:bg-raml/70 focus-visible:bg-raml/70"
+              className="group grid grid-cols-[2.25rem_minmax(0,1fr)_auto] items-baseline gap-x-3 border-b border-khatt py-2.5 transition-colors focus-visible:bg-raml/70"
             >
               <span className="text-sm tabular-nums text-midad-soft">{s.no}</span>
               <span className="flex min-w-0 items-baseline gap-2">
