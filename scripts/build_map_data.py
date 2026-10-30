@@ -444,6 +444,28 @@ def build_rest(db, persons, display, occurrences, manual, bukhari, spread):
     return data, db, persons, display, chains, manual, bukhari
 
 
+def chain_nodes(links, persons, display, manual, bukhari):
+    """A chain as the map tells it: the Companion first, al-Bukhari last."""
+    nodes = []
+    for pos, raw, pid, conf, trans in reversed(links):
+        p = persons.get(pid) if pid else None
+        nodes.append({
+            **({"id": p["key"].split(":")[1]} if p else {}),
+            "n": display.get(pid) or normalize_raw(raw),
+            "city": p.get("city") if p else None,
+            **({"m": 1} if pid in manual else {}),
+            "t": p.get("t") if p else None,
+            "b": band(p.get("rank")) if p else "unknown",
+            "v": verdict_for(p) if p else "",
+            "tr": TRANSMISSION.get(trans, ""),
+            **({"auto": 1} if conf is not None and conf < 1 else {}),
+        })
+    nodes.append({"id": BUKHARI_KEY.split(":")[1], "n": "البخاري", "city": "bukhara",
+                  "t": 11, "b": band(persons[bukhari].get("rank")), "v": short_verdict(persons[bukhari].get("phrase")),
+                  "tr": ""})
+    return nodes
+
+
 def journeys(db, persons, display, chains, manual, bukhari, wanted):
     out = []
     hadith_number = {hid: num for hid, num in db.execute("SELECT id, number FROM hadiths")}
@@ -456,24 +478,80 @@ def journeys(db, persons, display, chains, manual, bukhari, wanted):
             print(f"journey {number}: no chain found, skipped", file=sys.stderr)
             continue
         ordinal, iid, links = sorted(by_number[number])[0]
-        nodes = []
-        for pos, raw, pid, conf, trans in reversed(links):
-            p = persons.get(pid) if pid else None
-            nodes.append({
-                **({"id": p["key"].split(":")[1]} if p else {}),
-                "n": display.get(pid) or normalize_raw(raw),
-                "city": p.get("city") if p else None,
-                **({"m": 1} if pid in manual else {}),
-                "t": p.get("t") if p else None,
-                "b": band(p.get("rank")) if p else "unknown",
-                "v": verdict_for(p) if p else "",
-                "tr": TRANSMISSION.get(trans, ""),
-                **({"auto": 1} if conf is not None and conf < 1 else {}),
-            })
-        nodes.append({"id": BUKHARI_KEY.split(":")[1], "n": "البخاري", "city": "bukhara",
-                      "t": 11, "b": band(persons[bukhari].get("rank")), "v": short_verdict(persons[bukhari].get("phrase")),
-                      "tr": ""})
+        nodes = chain_nodes(links, persons, display, manual, bukhari)
         out.append({"number": int(number), "title": title, "prophet": ends.get(iid) == "prophet", "nodes": nodes})
+    return out
+
+
+# The chains of «سند اليوم»: whole and sure, long enough to travel, with a short text.
+DAILY_COUNT = 60
+DAILY_MEN = (5, 7)
+DAILY_MIN_PLACES = 3
+DAILY_MIN_CONFIDENCE = 0.8
+DAILY_MAX_LETTERS = 200
+DAILY_TITLE_WORDS = 8
+FIRST_TEACHER_GENERATION = 9  # earlier than this, the "chain" is a suspended (mu'allaq) report
+VOWELS = "[\u064b-\u0652\u0670]*"
+BLESSING = VOWELS.join("رض") + VOWELS + "[يى]" + VOWELS + r"\s+" + VOWELS.join("الله") + VOWELS + r"\s+" + VOWELS.join("عن") + VOWELS + "(?:هما|هم|ها|ه)" + VOWELS
+OPENING = re.compile(rf"^[\s،,:ـ.]*(?:{BLESSING}\s*ـ?)?[\s،,:ـ.]*")
+QUOTED = re.compile(r'"\s*([^"]{12,})"?')  # some quotes are never closed
+BEFORE_QUOTE_WORDS = 9  # more than this and the quote is the end of a story, not the start of the text
+COMMON_WORDS = set("قال قالت أن أنه إن النبي رسول الله صلى عليه وسلم".split())  # no help in telling two texts apart
+
+
+def daily(db, persons, display, chains, manual, bukhari):
+    numbers = dict(db.execute("SELECT id, number FROM hadiths"))
+    texts = dict(db.execute("SELECT hadith_id, text FROM texts WHERE edition_id = 1"))
+    raws = dict(db.execute("SELECT id, raw_text FROM isnads"))
+    ends = dict(db.execute("SELECT id, ends_with FROM isnads"))
+    chains_of = collections.Counter(hid for _, hid, _, _ in chains)
+    found = []
+    for iid, hid, _, links in chains:
+        number = str(numbers[hid])
+        if chains_of[hid] != 1 or not number.isdigit() or ends.get(iid) != "prophet":
+            continue  # a text with one chain only, so its matn is plain
+        if not DAILY_MEN[0] <= len(links) <= DAILY_MEN[1]:
+            continue
+        if not all(pid and conf is not None and conf >= DAILY_MIN_CONFIDENCE for _, _, pid, conf, _ in links):
+            continue
+        first, last = persons[links[0][2]], persons[links[-1][2]]
+        if (first.get("t") or 0) < FIRST_TEACHER_GENERATION or not (last.get("t") == 1 or last.get("rank") == 1):
+            continue
+        homes = {persons[pid].get("city") for _, _, pid, _, _ in links} - {None}
+        if len(homes) < DAILY_MIN_PLACES:
+            continue
+        text, raw = texts.get(hid) or "", raws.get(iid) or ""
+        if not raw or not text.startswith(raw):
+            continue
+        matn = OPENING.sub("", text[len(raw):].replace("\u200f", "")).strip()
+        if not matn or len(re.sub(r"\W", "", matn)) >= DAILY_MAX_LETTERS:
+            continue
+        quoted = QUOTED.search(matn)
+        says = bool(quoted) and len(matn[:quoted.start()].split()) <= BEFORE_QUOTE_WORDS
+        found.append((int(number), links, matn, (quoted.group(1) if says else matn).split(), says))
+    found.sort(key=lambda f: f[0])
+    # one telling of each text: the same words come back under several numbers
+    seen = set()
+    distinct = []
+    for item in found:
+        words = [re.sub(r"\W", "", w) for w in strip_marks(" ".join(item[3])).split()]
+        key = " ".join([w for w in words if w and w not in COMMON_WORDS][:3])
+        if key not in seen:
+            seen.add(key)
+            distinct.append(item)
+    # a saying that opens the text reads well alone: those first, then stories spread over the
+    # whole book, then all of it mixed so neighbouring days are not neighbouring hadiths
+    chosen = [item for item in distinct if item[4]][:DAILY_COUNT]
+    stories = [item for item in distinct if not item[4]]
+    step = len(stories) / max(1, DAILY_COUNT - len(chosen))
+    chosen += [stories[int(i * step)] for i in range(min(DAILY_COUNT - len(chosen), len(stories)))]
+    chosen.sort(key=lambda f: (f[0] * 2654435761) % 2 ** 32)
+    out = []
+    for number, links, matn, words, _ in chosen:
+        title = " ".join(words[:DAILY_TITLE_WORDS]).rstrip("،,:.؛ ")
+        out.append({"number": number, "title": title + ("…" if len(words) > DAILY_TITLE_WORDS else ""), "prophet": True,
+                    "matn": matn, "nodes": chain_nodes(links, persons, display, manual, bukhari)})
+    print(f"daily chains: {len(out)} of {len(distinct)} distinct texts that qualify ({len(found)} chains)")
     return out
 
 
@@ -522,6 +600,7 @@ def main():
                     help="isnady.db with Sahih al-Bukhari and the Taqrib imported (default: isnady's data folder)")
     ap.add_argument("--out", required=True, help="output JSON, e.g. public/data/map.json")
     ap.add_argument("--journeys", help='JSON list of {"number": 1, "title": "..."}; titles are quoted from the hadith text')
+    ap.add_argument("--daily", help="output JSON of the daily chains, e.g. public/data/daily.json")
     args = ap.parse_args()
 
     data, db, persons, display, chains, manual, bukhari = build(args.db)
@@ -550,6 +629,15 @@ def main():
     with open(args.out, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, separators=(",", ":"))
     print(f"wrote {args.out}: {len(data['cities'])} places, {sum(len(v) for v in data['flows'].values())} city links, {len(js)} journeys")
+    if args.daily:
+        chosen = daily(db, persons, display, chains, manual, bukhari)
+        for j in chosen:
+            for node in j["nodes"]:
+                dy = deaths.get(key_to_pid[node["id"]], (None, None))[0]
+                if dy:
+                    node["d"] = dy
+        with open(args.daily, "w", encoding="utf-8") as f:
+            json.dump(chosen, f, ensure_ascii=False, separators=(",", ":"))
 
 
 if __name__ == "__main__":

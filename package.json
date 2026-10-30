@@ -7,7 +7,7 @@
     "build": "next build && node scripts/fix-windows-export.mjs",
     "start": "npx serve out",
     "lint": "eslint",
-    "data": "python -P scripts/build_data.py && python -P scripts/build_map_data.py --out public/data/map.json --journeys scripts/journeys.json && python -P scripts/build_insights.py && node scripts/build_search.mjs",
+    "data": "python -P scripts/build_data.py && python -P scripts/build_map_data.py --out public/data/map.json --journeys scripts/journeys.json --daily public/data/daily.json && python -P scripts/build_insights.py && node scripts/build_search.mjs",
     "shots": "node scripts/screenshots.mjs"
   },
   "dependencies": {

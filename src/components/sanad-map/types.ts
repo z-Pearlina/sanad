@@ -60,6 +60,8 @@ export type Journey = {
   title: string;
   prophet: boolean;
   nodes: JourneyNode[];
+  /** The text after the chain: the chains of daily.json carry it. */
+  matn?: string;
 };
 
 export type MapData = {

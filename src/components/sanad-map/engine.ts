@@ -10,6 +10,8 @@ import { easeCubicOut } from "d3-ease";
 import { interpolateRound } from "d3-interpolate";
 import { ORD, count, esc, fmt, words, type Noun } from "./arabic";
 import { ICON, NAV_ICON } from "./icons";
+import { renewsIn } from "./today";
+import { fetchUmmahHadith } from "@/lib/ummah";
 import {
   ANCHOR, DX, DY, PLACE, WORLD_MARKUP, ZOOM_MARKUP, centerOn, cityViews, createChainLayer, createZoom, drawBase,
   fitTo as fitView, journeyPlaces, journeySummary, placeGeoLabels, placeNodes, wireZoomButtons,
@@ -25,6 +27,8 @@ export type SanadMapOptions = {
   startGen?: number;
   /** Open on the journey of this hadith, if it is one of the journeys. */
   startJourney?: number;
+  /** «سند اليوم»: the first journey on offer. */
+  today?: Journey;
   /** For maps inside a scrolling page: the wheel zooms only with Ctrl/⌘, touch needs two fingers. */
   cooperative?: boolean;
   /** Hadith page link; "{n}" becomes the hadith number. Empty for no links. */
@@ -96,6 +100,7 @@ ${ZOOM_MARKUP}
       <button type="button" class="sm-sheet-toggle" aria-label="إظهار اللوحة أو إخفاؤها"></button>
       <div class="sm-sheet-row">
         <p class="sm-sheet-title" role="heading" aria-level="2"></p>
+        <button type="button" class="sm-today-btn" hidden>${ICON.today}سند اليوم</button>
         <button type="button" class="sm-journey-btn">${JOURNEY_BUTTON}
         </button>
       </div>
@@ -163,6 +168,10 @@ export function mountSanadMap(
   const headTitle = el<HTMLElement>(".sm-sheet-title");
   const nowWho = el<HTMLElement>(".sm-now-who");
   const nowControls = el<HTMLElement>(".sm-now-controls");
+  const today = opts.today ?? null;
+  const todayRow = el<HTMLButtonElement>(".sm-sheet-row .sm-today-btn");
+  todayRow.hidden = !today;
+  todayRow.addEventListener("click", startToday);
 
   // the phone layouts: a bottom sheet upright, a side column on its side (see phone.ts)
   const phoneQuery = window.matchMedia(PHONE_QUERY);
@@ -634,6 +643,7 @@ export function mountSanadMap(
     panelStale = panelHidden();
     if (panelStale) return;
     panel.innerHTML = `
+      ${today ? `<div class="sm-today-head"><button type="button" class="sm-today-btn">${ICON.today}سند اليوم</button><span>${renewsIn()}</span></div>` : ""}
       <h2 class="sm-title">الطبقة ${ORD[gen]}</h2>
       <blockquote class="sm-quote">«${esc(quote)}»<cite>ابن حجر، مقدمة تقريب التهذيب</cite></blockquote>
       <div class="sm-chips"><span class="sm-chip sm-era">${esc(T.era)}</span></div>
@@ -659,6 +669,7 @@ export function mountSanadMap(
     }
     countUp(q('[data-k="n"]'), q('[data-w="n"]'), "n", "rawi", T.narrators);
     countUp(q('[data-k="l"]'), q('[data-w="l"]'), "l", "sila", T.links);
+    panel.querySelector(".sm-today-btn")?.addEventListener("click", startToday);
     panel.querySelectorAll<HTMLButtonElement>("[data-city]").forEach((b) =>
       b.addEventListener("click", () => openCity(b.dataset.city ?? "")),
     );
@@ -851,6 +862,17 @@ export function mountSanadMap(
       openJourneyList();
     }),
   );
+  function startToday() {
+    if (!today) return;
+    stopPlay();
+    dismissHint();
+    if (mode === "journey") endJourney(false);
+    startJourney(today);
+  }
+  function journeyCard(j: Journey, i: number) {
+    const places = journeyPlaces(j.nodes, homeOf).map((c) => c.name).join(" ← ");
+    return `<q>${esc(j.title)}</q><small>صحيح البخاري، رقم ${j.number}، ${esc(count(j.nodes.length, "rajul"))}</small><small>${esc(places)}</small>` + (i < 0 ? `<small>${renewsIn()}</small>` : "");
+  }
   function openJourneyList() {
     if (mode === "journey") endJourney(false);
     mode = "list";
@@ -864,13 +886,11 @@ export function mountSanadMap(
       <button type="button" class="sm-back">${ICON.prev}عودة إلى الطبقات</button>
       <div><div class="sm-kicker">أحاديث مختارة</div><h2 class="sm-title">تتبّع رحلة حديث</h2></div>
       <p class="sm-note sm-plain" style="font-size:13.5px">اختر حديثاً لترى رجال سنده واحداً بعد واحد، ${allReach ? "من النبي ﷺ" : "من أوله"} إلى البخاري، في مواطنهم على الخريطة.</p>
-      <ul class="sm-j-list">${DATA.journeys
-        .map((j, i) => {
-          const places = journeyPlaces(j.nodes, homeOf).map((c) => c.name).join(" ← ");
-          return `<li><button type="button" class="sm-j-card" data-j="${i}"><q>${esc(j.title)}</q><small>صحيح البخاري، رقم ${j.number}، ${esc(count(j.nodes.length, "rajul"))}</small><small>${esc(places)}</small></button></li>`;
-        })
+      <ul class="sm-j-list">${today ? `<li><button type="button" class="sm-j-card sm-j-today"><span class="sm-kicker">${ICON.today}سند اليوم</span>${journeyCard(today, -1)}</button></li>` : ""}${DATA.journeys
+        .map((j, i) => `<li><button type="button" class="sm-j-card" data-j="${i}">${journeyCard(j, i)}</button></li>`)
         .join("")}</ul>`;
     panel.querySelector(".sm-back")?.addEventListener("click", showGen);
+    panel.querySelector(".sm-j-today")?.addEventListener("click", startToday);
     panel.querySelectorAll<HTMLButtonElement>("[data-j]").forEach((b) =>
       b.addEventListener("click", () => {
         const j = DATA.journeys[Number(b.dataset.j)];
@@ -991,12 +1011,14 @@ export function mountSanadMap(
     if (!j) return;
     panel.classList.add("sm-journey-panel");
     const link = hadithHref(j.number);
+    const isToday = j === today;
     panel.innerHTML = `
       <button type="button" class="sm-back">${ICON.prev}عودة إلى الطبقات</button>
       <div><div class="sm-kicker">صحيح البخاري، رقم ${j.number}${link ? ` · <a class="sm-link" href="${esc(link)}" data-internal>صفحة الحديث</a>` : ""}</div>
-      <h2 class="sm-title" style="font-size:26px">«${esc(j.title)}»</h2></div>
+      ${isToday ? `<h2 class="sm-title" style="font-size:26px">سند اليوم</h2><div class="sm-kicker">${renewsIn()}</div>` : `<h2 class="sm-title" style="font-size:26px">«${esc(j.title)}»</h2>`}</div>
       <div class="sm-j-controls"></div>
       <div class="sm-j-scroll">
+      ${isToday && j.matn ? `<blockquote class="sm-matn">${esc(j.matn)}</blockquote>` : ""}
       <ol class="sm-chain">
         ${j.prophet ? `<li class="sm-prophet sm-now"><span class="sm-dara sm-full sm-b-sahabi" aria-hidden="true"></span><div><div class="sm-who">النبي ﷺ</div></div></li>` : ""}
         ${j.nodes
@@ -1022,6 +1044,19 @@ export function mountSanadMap(
     renderJourneyControls();
     sheet.measure();
     if (upright()) sheet.set("min");
+    if (isToday) showUmmahText(j);
+  }
+  // the day's text from the Ummah API when it answers and its text is ours; if not, ours stays, silently
+  function showUmmahText(j: Journey) {
+    const start = j.matn?.slice(0, 24);
+    if (!start) return;
+    fetchUmmahHadith(String(j.number)).then((h) => {
+      const at = h ? h.arabic.indexOf(start) : -1;
+      const box = panel.querySelector<HTMLElement>(".sm-matn");
+      if (!h || at < 0 || !box || dead || journey !== j) return;
+      box.textContent = h.arabic.slice(at).trim();
+      box.insertAdjacentHTML("beforeend", `<cite>من Ummah API</cite>`);
+    });
   }
   // a phone's lowest sheet: the narrator the chain has reached
   function updateNow() {
@@ -1212,7 +1247,7 @@ export function mountSanadMap(
     measureLabels();
     layoutLabels();
   });
-  const firstJourney = DATA.journeys.find((j) => j.number === opts.startJourney);
+  const firstJourney = [...(today ? [today] : []), ...DATA.journeys].find((j) => j.number === opts.startJourney);
   if (firstJourney) startJourney(firstJourney);
   else if (!reduced && opts.autoplay !== false) {
     autoplayTimer = window.setTimeout(() => {

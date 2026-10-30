@@ -5,7 +5,8 @@ import { createPortal } from "react-dom";
 import { useRouter, useSearchParams } from "next/navigation";
 import ThemeButton from "../ThemeButton";
 import { mountSanadMap } from "./engine";
-import type { Geometry, MapData, NavLink } from "./types";
+import { todayOf } from "./today";
+import type { Geometry, Journey, MapData, NavLink } from "./types";
 import "./sanad-map.css";
 
 type Props = {
@@ -68,13 +69,16 @@ export default function SanadMap({
     Promise.all([
       getJSON<MapData>(dataUrl, controller.signal),
       getJSON<Geometry>(geometryUrl, controller.signal),
+      // the map stands without it
+      getJSON<Journey[]>("/data/daily.json", controller.signal).catch(() => [] as Journey[]),
     ])
-      .then(([data, geo]) => {
+      .then(([data, geo, daily]) => {
         if (controller.signal.aborted) return;
         destroy = mountSanadMap(root, data, geo, {
           autoplay,
           startGen,
           startJourney,
+          today: todayOf(daily),
           cooperative,
           hadithHref,
           narratorHref,

@@ -35,6 +35,7 @@ const map = readData<MapFile>("map.json");
 type DeathFix = { id: string; n: string; from: number; to: number; why: string };
 const time = readData<{ total: number; dated: number; fixes: DeathFix[]; narrators: { y: number }[] }>("time.json");
 const lateDeaths = time.narrators.filter((r) => r.y >= 260).length;
+const daily = readData<unknown[]>("daily.json");
 const chainLinks = map.tabaqat.reduce((sum, t) => sum + t.links, 0);
 // Isolated left-to-right so the sign stays after the digits inside Arabic text.
 const pct = (part: number, whole: number) => <bdi dir="ltr">{Math.round((part / whole) * 100)}%</bdi>;
@@ -132,6 +133,11 @@ export default function AboutPage() {
           <li>
             البحث في النصوص يشمل المتن وحده دون السند، بعد حذف التشكيل وتوحيد الهمزات، وتُطابق الكلمة وما اتصل بها من حروف
             مثل الواو والباء و«ال»، فالبحث عن «الصبا» يجد «بالصبا».
+          </li>
+          <li>
+            «سند اليوم» في الخريطة يُختار من {daily.length} سنداً برقم اليوم في السنة (بتوقيت UTC، فيراه كل الزوار واحداً)، وشرطها أن
+            تتصل إلى النبي <Salla />، وأن يُعرف رجالها كلهم بثقة تعرّف 0.8 فأكثر، وأولها شيخ من الطبقة التاسعة فما بعدها، وآخرها صحابي،
+            وفيها من 5 إلى 7 رجال يمرون بثلاثة بلدان أو أكثر، ومتنها أقصر من 200 حرف.
           </li>
           <li>
             «رؤى من البيانات» أرقام وصفية من أسانيد صحيح البخاري في هذه البيانات، لا أحكام، وشرط كل رسم مكتوب تحته.
