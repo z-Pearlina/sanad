@@ -18,7 +18,7 @@
 
 <div dir="rtl">
 
-<!-- live-url -->
+**الموقع:** [sanad-kysl.onrender.com](https://sanad-kysl.onrender.com)
 
 **«سَنَد»** موقع عربي يعرض كل حديث من صحيح البخاري مع رجال سنده واحداً واحداً، ثم يرويه على الخريطة وعلى خط الزمن: أين عاش رجاله، ومتى ماتوا، وكيف انتقل مركز الرواية من المدينة والكوفة والبصرة إلى بغداد ومرو وبخارى جيلاً بعد جيل. وبجانب كل راوٍ حكم ابن حجر عليه بلفظه في «تقريب التهذيب»، لا حكم من عندنا. والعربية فيه أولاً: نص الحديث كما هو بتشكيله، والأسماء والأرقام والأوصاف كلها بالعربية.
 
@@ -164,6 +164,8 @@ npm run data       # scripts/build_data.py, then scripts/build_map_data.py
 </div>
 
 ## English summary
+
+**Live site:** [sanad-kysl.onrender.com](https://sanad-kysl.onrender.com)
 
 **Sanad** (*the chain of narrators*) is an Arabic-first site that shows every hadith of Sahih al-Bukhari with the men of its chain one by one, and tells that chain on a map and a timeline: where its narrators lived, when they died, and how the centre of transmission moved from Medina, Kufa and Basra to Baghdad, Merv and Bukhara over twelve generations. Beside each narrator stands Ibn Hajar's verdict in his own words, from *Taqrib al-Tahdhib*; the site issues no grading of its own.
 
