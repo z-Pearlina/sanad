@@ -71,21 +71,21 @@ export default function HadithView({ n }: { n: string }) {
           <h1 className="naskh text-3xl font-bold leading-snug">الحديث {hadith.n}</h1>
           {hadith.book && (
             <p className="text-sm text-midad-soft">
-              <Link href={`/books/#book-${hadith.book.no}`} className="hover:text-nila">
+              <Link href={`/books/#book-${hadith.book.no}`} className="hover:text-nila phone:inline-flex phone:min-h-11 phone:items-center">
                 {hadith.book.title}
               </Link>{" "}
               · الكتاب {hadith.book.no}
             </p>
           )}
         </div>
-        <nav className="flex gap-4 text-sm" aria-label="التنقل بين الأحاديث">
+        <nav className="flex gap-4 text-sm phone:w-full phone:justify-between" aria-label="التنقل بين الأحاديث">
           {hadith.prev && (
-            <Link href={`/hadith/?n=${hadith.prev}`} className="text-nila hover:underline">
+            <Link href={`/hadith/?n=${hadith.prev}`} className="text-nila hover:underline phone:flex phone:min-h-11 phone:items-center">
               → الحديث {hadith.prev}
             </Link>
           )}
           {hadith.next && (
-            <Link href={`/hadith/?n=${hadith.next}`} className="text-nila hover:underline">
+            <Link href={`/hadith/?n=${hadith.next}`} className="text-nila hover:underline phone:ms-auto phone:flex phone:min-h-11 phone:items-center">
               الحديث {hadith.next} ←
             </Link>
           )}
@@ -103,7 +103,7 @@ export default function HadithView({ n }: { n: string }) {
         </p>
         {english && (
           <details className="mt-4 text-sm">
-            <summary className="cursor-pointer text-nila">الترجمة الإنجليزية</summary>
+            <summary className="cursor-pointer text-nila phone:flex phone:min-h-11 phone:items-center">الترجمة الإنجليزية</summary>
             <p dir="ltr" lang="en" className="mt-2 leading-relaxed text-midad-soft">
               {english}
             </p>
@@ -112,7 +112,7 @@ export default function HadithView({ n }: { n: string }) {
       </section>
 
       {hadith.isnads.length > 1 && (
-        <div role="tablist" aria-label="أسانيد الحديث" className="flex gap-1 border-b border-khatt">
+        <div role="tablist" aria-label="أسانيد الحديث" className="flex gap-1 border-b border-khatt phone:overflow-x-auto">
           {hadith.isnads.map((s, i) => (
             <button
               key={s.ordinal}
@@ -123,7 +123,7 @@ export default function HadithView({ n }: { n: string }) {
                 setStep(-1);
                 setFocus(null);
               }}
-              className={`-mb-px border-b-2 px-3 py-1.5 text-sm ${i === tab ? "border-nila text-nila" : "border-transparent text-midad-soft"}`}
+              className={`-mb-px border-b-2 px-3 py-1.5 text-sm phone:mb-0 phone:min-h-11 phone:shrink-0 phone:whitespace-nowrap ${i === tab ? "border-nila text-nila" : "border-transparent text-midad-soft"}`}
             >
               السند {i + 1}
             </button>

@@ -52,6 +52,10 @@ export default function Timeline({ isnad, step = -1, focus = null, onPoint }: Pr
             >
               <span className={`naskh truncate px-1 text-base leading-normal ${current || pointed ? "font-bold text-nila" : ""}`}>
                 {l.raw}
+                {/* a phone has no hover to show the year */}
+                <span className="hidden font-sans text-xs font-normal text-midad-soft phone:block">
+                  {l.death ? `ت ${l.death}هـ` : era ? `تقريبي: ${era.label}` : ""}
+                </span>
               </span>
               <div className="relative h-6">
                 <span className="absolute inset-x-0 top-1/2 h-px bg-khatt" />

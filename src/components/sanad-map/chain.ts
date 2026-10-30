@@ -10,6 +10,7 @@ import {
   journeyPlaces, journeySummary, placeGeoLabels, placeNodes, wireZoomButtons, type CityView, type XY,
 } from "./core";
 import { esc } from "./arabic";
+import { PHONE_QUERY } from "./phone";
 import type { City, Geometry, JourneyNode } from "./types";
 
 export type ChainSummary = ReturnType<typeof journeySummary>;
@@ -25,6 +26,8 @@ export type ChainMapControls = {
   replay: () => void;
   /** Ring and name a narrator pointed at elsewhere on the page (null to clear). */
   focus: (id: string | null) => void;
+  /** Phones: the map has been opened full screen, or closed. */
+  setFull: (on: boolean) => void;
   destroy: () => void;
 };
 
@@ -41,6 +44,7 @@ export function mountChainMap(
 ): ChainMapControls {
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const touch = window.matchMedia("(pointer: coarse)").matches;
+  const phone = window.matchMedia(PHONE_QUERY);
   const mac = /Mac|iPhone|iPad/.test(navigator.userAgent);
 
   const holder = document.createElement("div");
@@ -104,6 +108,8 @@ export function mountChainMap(
   let focusId: string | null = null;
   let timer = 0;
   let flashTimer = 0;
+  let full = false;
+  let userMoved = false; // the visitor has taken the camera, full screen
 
   function draw(enter: boolean) {
     chain.draw({
@@ -135,6 +141,10 @@ export function mountChainMap(
     cooperative: true,
     mac,
     flashHint,
+    gestures: () => (!phone.matches ? "cooperative" : full ? "free" : "locked"),
+    onUserStart: () => {
+      userMoved = true;
+    },
     onZoom: (t) => {
       transform = t;
       world.attr("transform", t.toString());
@@ -156,7 +166,7 @@ export function mountChainMap(
     fitTo(svg, zoom, box(30), pts, 20 + (longest - 1) * 20 + (pts.length > 1 ? 0 : 60), duration, pts.length > 1 ? 12 : 4, reduced);
   }
   wireZoomButtons(stage, svg, zoom, reduced, () => frameRoute(700));
-  if (touch) flashHint("حرّك الخريطة بإصبعين");
+  if (touch && !phone.matches) flashHint("حرّك الخريطة بإصبعين");
 
   // ---------------------------------------------------------------- telling the chain
   // earlier narrators who lived in the same city as node i
@@ -173,7 +183,7 @@ export function mountChainMap(
     opts.onStep?.(i);
     const cur = homeOf(nodes[i]);
     const prev = lastPlaceBefore(i);
-    if (cur) fitTo(svg, zoom, box(50), prev ? [cur.xy, prev.xy] : [cur.xy], 20 + rowIndex(i) * 20, CAMERA_MS, 3, reduced);
+    if (cur && !userMoved) fitTo(svg, zoom, box(50), prev ? [cur.xy, prev.xy] : [cur.xy], 20 + rowIndex(i) * 20, CAMERA_MS, 3, reduced);
     timer = window.setTimeout(
       () => {
         visible = i + 1;
@@ -187,7 +197,7 @@ export function mountChainMap(
     playing = false;
     step = nodes.length - 1;
     visible = nodes.length;
-    frameRoute(reduced ? 0 : 1400);
+    if (!userMoved) frameRoute(reduced ? 0 : 1400);
     draw(false);
     opts.onStep?.(nodes.length); // past the last narrator: nobody is being drawn
     opts.onDone?.(journeySummary(nodes, homeOf));
@@ -196,6 +206,7 @@ export function mountChainMap(
     window.clearTimeout(timer);
     svg.interrupt();
     started = true;
+    userMoved = false;
     chain.clear();
     step = -1;
     visible = 0;
@@ -237,6 +248,10 @@ export function mountChainMap(
     focus(id) {
       focusId = id;
       draw(false);
+    },
+    setFull(on) {
+      full = on;
+      if (!playing) frameRoute(0);
     },
     destroy() {
       window.clearTimeout(timer);

@@ -25,3 +25,25 @@
 /* a narrator pointed at in the text, the chain column or the timeline */
 .sanad-map .sm-j-node.sm-focus circle.sm-r { stroke-width: 4.4; }
 .sanad-map .sm-j-node.sm-focus text.sm-nm { fill: var(--sm-nila); }
+
+/* on a phone a map in a page is a preview: the page scrolls through it, the chain still draws
+   itself, and a button opens it full screen (FullMap.tsx) */
+.sm-open-map { display: none; }
+@media (max-width: 860px), (max-height: 500px) and (pointer: coarse) {
+  .sanad-map.sm-embed .sm-tools { display: none; }
+  .sanad-map.sm-embed .sm-svg { touch-action: auto; pointer-events: none; }
+  .sm-open-map {
+    display: flex; align-items: center; justify-content: center; width: 100%; min-height: 44px;
+    border: 1px solid var(--nila); border-top: 0; color: var(--nila); font-size: 15px; font-weight: 500;
+  }
+}
+.sm-full { position: fixed; inset: 0; z-index: 60; background: var(--raqq); }
+.sm-full .sanad-map.sm-embed { --sanad-map-height: 100dvh; min-height: 0; border: 0; }
+.sm-full .sanad-map.sm-embed .sm-tools { display: flex; top: 18px; left: 18px; }
+.sm-full .sanad-map.sm-embed .sm-svg { touch-action: none; pointer-events: auto; cursor: grab; }
+.sm-full-close {
+  position: absolute; z-index: 5; top: 18px; right: 18px; display: flex; align-items: center; gap: 6px;
+  min-height: 44px; padding: 0 12px; background: var(--raqq); color: var(--midad); border: 1px solid var(--khatt);
+  font-size: 15px; font-weight: 500;
+}
+html.sm-locked { overflow: hidden; }

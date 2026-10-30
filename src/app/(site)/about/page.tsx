@@ -212,7 +212,7 @@ function DaraDrawing({ dotted, caption, note }: { dotted: boolean; caption: stri
 function Source({ name, href, license, children }: { name: string; href: string; license?: string; children: React.ReactNode }) {
   return (
     <li>
-      <a href={href} className="font-semibold text-nila underline underline-offset-4" dir="auto">
+      <a href={href} className="font-semibold text-nila underline underline-offset-4 phone:inline-flex phone:min-h-11 phone:min-w-11 phone:items-center" dir="auto">
         {name}
       </a>
       {license && <span className="text-sm text-midad-soft"> · {license}</span>}

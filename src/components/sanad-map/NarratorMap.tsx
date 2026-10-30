@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import FullMap from "./FullMap";
 import { count, fmt } from "./arabic";
 import { mountNetworkMap, type NetworkControls, type NetworkData, type NetworkPlace, type Side } from "./network";
 import { getData } from "@/lib/data";
@@ -99,7 +100,7 @@ export default function NarratorMap({ home, band, teachers, students, cityNames,
               aria-pressed={side === s}
               disabled={(s === "teachers" ? teachers : students).length === 0}
               onClick={() => setSide(s)}
-              className={`rounded-sm border px-3 py-1.5 text-sm transition-colors disabled:opacity-40 ${
+              className={`rounded-sm border px-3 py-1.5 text-sm transition-colors disabled:opacity-40 phone:min-h-11 ${
                 side === s ? "border-zinjafr text-zinjafr" : "border-khatt text-midad-soft hover:border-nila hover:text-nila"
               }`}
             >
@@ -108,7 +109,9 @@ export default function NarratorMap({ home, band, teachers, students, cityNames,
           );
         })}
       </div>
-      <div ref={ref} className="sanad-map sm-embed sm-embed-small" dir="rtl" lang="ar" />
+      <FullMap onChange={(full) => controls.current?.setFull(full)}>
+        <div ref={ref} className="sanad-map sm-embed sm-embed-small" dir="rtl" lang="ar" />
+      </FullMap>
       <figcaption className="mt-2 space-y-1 text-sm">
         {list.length > 0 && (
           <p>

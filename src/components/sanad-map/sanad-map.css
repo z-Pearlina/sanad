@@ -333,8 +333,13 @@
 }
 .sanad-map .sm-tip strong { display: block; font-family: var(--sm-font-text); font-size: 17px; color: var(--sm-midad); }
 
-.sanad-map .sm-sheet-toggle { display: none; }
-.sanad-map .sm-band { display: none; }
+/* the sheet exists only on a phone: on a wider screen its children sit directly on the stage */
+.sanad-map .sm-sheet,
+.sanad-map .sm-sheet-head { display: contents; }
+.sanad-map .sm-sheet-toggle,
+.sanad-map .sm-sheet-row,
+.sanad-map .sm-now,
+.sanad-map .sm-hit { display: none; }
 
 /* medium screens: a narrower margin and a compact timeline */
 @media (max-width: 1180px) {
@@ -356,42 +361,121 @@
   .sanad-map .sm-panel.sm-journey-panel .sm-j-scroll { gap: 10px; }
 }
 
-/* phones and narrow windows: the panel becomes a bottom sheet */
-@media (max-width: 860px) {
-  .sanad-map { --sm-edge: max(24px, calc(env(safe-area-inset-right, 0px) + 16px)); }
-  .sanad-map .sm-masthead { top: max(22px, calc(env(safe-area-inset-top, 0px) + 14px)); }
-  .sanad-map .sm-wordmark { font-size: 36px; }
-  .sanad-map .sm-tagline { font-size: 12.5px; }
-  .sanad-map .sm-nav { margin-top: 4px; gap: 2px 12px; }
-  .sanad-map .sm-nav a { font-size: 12.5px; }
-  .sanad-map .sm-band { display: block; position: absolute; z-index: 6; top: 0; left: 0; right: 0; height: calc(var(--sm-band-h, 112px) + env(safe-area-inset-top, 0px)); background: var(--sm-leaf); border-bottom: 1px solid var(--sm-khatt); }
-  .sanad-map .sm-has-nav .sm-band { --sm-band-h: 132px; }
-  .sanad-map .sm-tools { top: max(24px, calc(env(safe-area-inset-top, 0px) + 16px)); left: max(24px, calc(env(safe-area-inset-left, 0px) + 16px)); flex-direction: column; align-items: flex-start; }
-  .sanad-map .sm-zoom { flex-direction: row; }
-  .sanad-map .sm-zoom button + button { border-top: 0; border-right: 1px solid var(--sm-khatt); }
-  .sanad-map .sm-journey-btn { padding: 7px 10px; font-size: 13px; }
-  .sanad-map .sm-panel {
-    top: auto; right: 0; left: 0; bottom: 0; width: auto; max-height: 46%;
-    padding: 12px max(18px, env(safe-area-inset-right, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) max(18px, env(safe-area-inset-left, 0px));
-    border-width: 1px 0 0; box-shadow: 0 -8px 24px var(--sm-shadow);
-  }
-  .sanad-map .sm-panel.sm-collapsed { max-height: 64px; overflow: hidden; }
-  .sanad-map .sm-panel.sm-journey-panel { max-height: 42%; }
-  .sanad-map .sm-sheet-toggle { all: unset; display: block; cursor: pointer; align-self: center; width: 46px; height: 5px; border-radius: 3px; background: var(--sm-khatt); margin: -2px 0 2px; }
-  .sanad-map .sm-title { font-size: 26px; }
-  .sanad-map .sm-quote { font-size: 17px; }
-  .sanad-map .sm-timeline { bottom: calc(46% + 10px); right: 50%; transform: translateX(50%); gap: 8px; padding: 6px 10px 8px; max-width: calc(100% - 36px); }
-  .sanad-map .sm-timeline.sm-low { bottom: 78px; }
-  .sanad-map .sm-gens { grid-template-columns: repeat(12, minmax(18px, 24px)); }
-  .sanad-map .sm-gens::before,
-  .sanad-map .sm-progress { top: 9px; right: 11px; left: 11px; }
-  .sanad-map .sm-progress { left: auto; }
-  .sanad-map .sm-g-d { width: 17px; height: 17px; }
-  .sanad-map .sm-g-d::after { width: 6px; height: 6px; }
-  .sanad-map .sm-play { width: 32px; height: 32px; }
-  .sanad-map .sm-eras { font-size: 9.5px; }
-  .sanad-map .sm-hint { bottom: calc(46% + 86px); right: 50%; transform: translateX(50%); font-size: 12px; white-space: normal; text-align: center; width: max-content; max-width: calc(100% - 48px); }
+/* phones, upright or on their side: no masthead (the top bar is PhoneBar.tsx), and the panel,
+   the generations and the tools live in one sheet */
+@media (max-width: 860px), (max-height: 500px) and (pointer: coarse) {
+  .sanad-map { min-height: 0; }
+  .sanad-map .sm-masthead,
+  .sanad-map .sm-compass { display: none; }
   .sanad-map .sm-frame { inset: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-inset-right, 0px)) max(6px, env(safe-area-inset-bottom, 0px)) max(6px, env(safe-area-inset-left, 0px)); }
+
+  .sanad-map .sm-city .sm-label,
+  .sanad-map .sm-city.sm-region .sm-label { font-size: 13px; }
+  .sanad-map .sm-city .sm-bubble { transform: scale(var(--sm-bubble-k, 1)); transform-box: fill-box; transform-origin: center; }
+  .sanad-map .sm-hit { display: inline; fill: transparent; pointer-events: all; }
+
+  .sanad-map .sm-sheet { display: flex; flex-direction: column; position: absolute; z-index: 7; background: var(--sm-raqq); }
+  .sanad-map .sm-sheet-head { display: block; order: -1; flex: none; touch-action: none; -webkit-user-select: none; user-select: none; }
+  .sanad-map .sm-sheet-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 0 6px; min-height: 38px; }
+  .sanad-map .sm-sheet-title { font-family: var(--sm-font-text); font-weight: 700; font-size: 20px; line-height: 1.2; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sanad-map .sm-sheet .sm-tools { flex-direction: column; }
+  .sanad-map .sm-sheet .sm-tools .sm-journey-btn { display: none; }
+  .sanad-map .sm-sheet-row .sm-journey-btn { position: relative; flex: none; padding: 6px 10px; font-size: 13px; background: var(--sm-raqq); }
+  .sanad-map .sm-sheet-row .sm-journey-btn::after { content: ""; position: absolute; inset: -6px 0; }
+  .sanad-map .sm-zoom button { width: 44px; height: 44px; }
+
+  /* the generations, in the head of the sheet */
+  .sanad-map .sm-timeline { position: static; display: flex; align-items: center; gap: 6px; padding: 0; background: none; border: 0; box-shadow: none; }
+  .sanad-map .sm-play { width: 38px; height: 38px; }
+  .sanad-map .sm-gens { flex: 1; min-width: 0; grid-template-columns: repeat(12, minmax(24px, 1fr)); row-gap: 1px; }
+  .sanad-map .sm-gen { min-height: 40px; align-content: center; gap: 1px; }
+  .sanad-map .sm-gens::before { top: 13px; right: 4.1667%; left: 4.1667%; }
+  .sanad-map .sm-progress { top: 12px; right: 4.1667%; }
+  .sanad-map .sm-g-d { width: 19px; height: 19px; }
+  .sanad-map .sm-g-d::after { width: 7px; height: 7px; }
+  .sanad-map .sm-eras { font-size: 9.5px; gap: 3px; }
+
+  /* the content of the sheet: only its title moves to the head */
+  .sanad-map .sm-panel {
+    position: static; width: auto; max-height: none; flex: 1 1 auto; min-height: 0;
+    padding: 4px 18px calc(var(--sm-sheet-y, 0px) + 20px + env(safe-area-inset-bottom, 0px));
+    background: none; border: 0; box-shadow: none; overflow: hidden; touch-action: none;
+  }
+  .sanad-map .sm-sheet[data-stop="full"] .sm-panel { overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; }
+  .sanad-map .sm-panel:not(.sm-journey-panel) .sm-title { display: none; }
+  .sanad-map .sm-panel.sm-journey-panel .sm-title { font-size: 23px !important; }
+  .sanad-map .sm-quote { font-size: 17px; }
+  .sanad-map .sm-back { min-height: 44px; }
+  .sanad-map .sm-btn { display: inline-grid; place-items: center; min-height: 44px; text-align: center; }
+  .sanad-map .sm-bars button { min-height: 44px; display: inline-flex; align-items: center; }
+  .sanad-map .sm-spark { height: 62px; }
+  .sanad-map .sm-spark button { min-height: 44px; }
+  .sanad-map .sm-people a.sm-who,
+  .sanad-map .sm-chain a.sm-who { display: inline-block; min-height: 30px; }
+  .sanad-map .sm-j-card { min-height: 44px; }
+  .sanad-map .sm-panel.sm-journey-panel .sm-j-scroll { flex: none; min-height: 0; overflow: visible; padding-inline-end: 0; }
+}
+
+/* upright: a bottom sheet with three heights, moved with transform (see phone.ts) */
+@media (max-width: 860px) and (min-height: 501px) {
+  .sanad-map .sm-sheet {
+    left: 0; right: 0; bottom: 0; height: 88%;
+    border-top: 1px solid var(--sm-khatt); box-shadow: 0 -8px 24px var(--sm-shadow);
+    transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1); will-change: transform;
+  }
+  .sanad-map .sm-sheet.sm-dragging { transition: none; }
+  .sanad-map .sm-sheet-head { padding: 0 8px calc(6px + env(safe-area-inset-bottom, 0px)); }
+  .sanad-map .sm-sheet-toggle { all: unset; display: block; position: relative; width: 100%; height: 22px; cursor: grab; }
+  .sanad-map .sm-sheet-toggle::before { content: ""; position: absolute; inset: -14px 0 -8px; }
+  .sanad-map .sm-sheet-toggle::after { content: ""; position: absolute; top: 8px; left: 50%; width: 46px; height: 5px; margin-left: -23px; border-radius: 3px; background: var(--sm-khatt); }
+  .sanad-map .sm-sheet-toggle:focus-visible::after { background: var(--sm-nila); }
+  .sanad-map .sm-sheet .sm-tools { top: auto; bottom: calc(100% + 10px); left: 8px; right: auto; transition: opacity 0.2s; }
+  .sanad-map .sm-sheet[data-stop="full"] .sm-tools { opacity: 0; pointer-events: none; }
+  .sanad-map:not(.sm-embed) .sm-hint {
+    top: calc(env(safe-area-inset-top, 0px) + 70px); bottom: auto; right: 50%; transform: translateX(50%);
+    font-size: 12.5px; white-space: normal; text-align: center; width: max-content; max-width: calc(100% - 32px);
+  }
+
+  /* a journey: the head holds the narrator the chain has reached */
+  .sanad-map .sm-journeying .sm-sheet-row { display: none; }
+  .sanad-map .sm-journeying .sm-now { display: grid; gap: 6px; padding: 0 6px; }
+  .sanad-map .sm-now-who { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 0 8px; align-items: start; min-height: 44px; }
+  .sanad-map .sm-now-who > div { min-width: 0; }
+  .sanad-map .sm-now-name { display: flex; align-items: baseline; gap: 8px; white-space: nowrap; overflow: hidden; }
+  .sanad-map .sm-now-name .sm-who { font-size: 18px; overflow: hidden; text-overflow: ellipsis; }
+  .sanad-map .sm-now .sm-term { flex: none; font-family: var(--sm-font-text); color: var(--sm-zinjafr); font-weight: 700; font-size: 15px; }
+  .sanad-map .sm-now .sm-meta { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sanad-map .sm-now-title { grid-column: 1 / -1; font-family: var(--sm-font-text); font-size: 18px; line-height: 1.5; quotes: "«" "»"; }
+  .sanad-map .sm-now-controls { display: grid; grid-template-columns: 1fr 1.4fr 1fr; gap: 6px; }
+  .sanad-map .sm-panel .sm-j-controls .sm-btn:not([data-act="other"]) { display: none; }
+}
+
+/* on its side: a column beside the map, the full height of the screen */
+@media (max-width: 860px) and (max-height: 500px), (max-height: 500px) and (pointer: coarse) {
+  .sanad-map .sm-sheet { top: 0; right: 0; bottom: 0; left: auto; width: 300px; border-left: 1px solid var(--sm-khatt); }
+  .sanad-map .sm-sheet-head { padding: 48px 6px 4px; }
+  .sanad-map .sm-sheet-toggle { display: none; }
+  .sanad-map .sm-sheet .sm-tools { top: 12px; right: calc(100% + 10px); left: auto; }
+  .sanad-map .sm-sheet-row { padding-left: 84px; }
+  .sanad-map .sm-sheet-row .sm-journey-btn { position: absolute; top: 47px; left: 6px; width: 38px; height: 38px; padding: 0; justify-content: center; font-size: 0; gap: 0; }
+  .sanad-map .sm-sheet-row .sm-journey-btn::after { inset: -3px; }
+  .sanad-map .sm-play { position: absolute; top: 47px; left: 46px; }
+  .sanad-map .sm-gens { grid-template-columns: repeat(12, 24px); }
+  .sanad-map .sm-panel { padding: 6px 14px 14px; }
+  .sanad-map .sm-journeying .sm-sheet-row { display: none; }
+  .sanad-map .sm-journeying .sm-sheet-head { padding-top: 44px; }
+  .sanad-map:not(.sm-embed) .sm-hint { top: 12px; bottom: auto; right: calc(300px + 66px); left: 12px; font-size: 12.5px; white-space: normal; text-align: center; }
+}
+
+/* touch devices and small screens draw less: no blending over the map, no blur, no pulse */
+@media (max-width: 860px), (pointer: coarse) {
+  .sanad-map .sm-stage::after { display: none; }
+  .sanad-map .sm-panel { -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .sanad-map .sm-panel,
+  .sanad-map .sm-timeline,
+  .sanad-map .sm-zoom,
+  .sanad-map .sm-journey-btn { background: var(--sm-raqq); }
+  .sanad-map .sm-city .sm-pulse { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -400,5 +484,6 @@
   .sanad-map .sm-progress,
   .sanad-map .sm-g-d,
   .sanad-map .sm-chain li,
-  .sanad-map .sm-arc { transition: none; }
+  .sanad-map .sm-arc,
+  .sanad-map .sm-sheet { transition: none; }
 }

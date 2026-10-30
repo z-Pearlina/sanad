@@ -11,6 +11,7 @@ import {
   wireZoomButtons, type CityView, type XY,
 } from "./core";
 import { esc } from "./arabic";
+import { PHONE_QUERY } from "./phone";
 import type { Band, City, Geometry } from "./types";
 
 export type Side = "teachers" | "students";
@@ -22,7 +23,12 @@ export type NetworkData = {
   teachers: NetworkPlace[];
   students: NetworkPlace[];
 };
-export type NetworkControls = { show: (side: Side) => void; destroy: () => void };
+export type NetworkControls = {
+  show: (side: Side) => void;
+  /** Phones: the map has been opened full screen, or closed. */
+  setFull: (on: boolean) => void;
+  destroy: () => void;
+};
 
 type Line = NetworkPlace & { c: CityView };
 
@@ -39,6 +45,7 @@ export function mountNetworkMap(
 ): NetworkControls {
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const touch = window.matchMedia("(pointer: coarse)").matches;
+  const phone = window.matchMedia(PHONE_QUERY);
   const mac = /Mac|iPhone|iPad/.test(navigator.userAgent);
 
   const holder = document.createElement("div");
@@ -74,6 +81,7 @@ export function mountNetworkMap(
   const home = data.home ? cityById.get(data.home) ?? null : null;
   let side: Side = first;
   let lines: Line[] = [];
+  let full = false;
 
   const cityG = select(stage.querySelector<SVGGElement>(".sm-cities")!)
     .selectAll<SVGGElement, CityView>("g.sm-city")
@@ -129,6 +137,7 @@ export function mountNetworkMap(
     cooperative: true,
     mac,
     flashHint,
+    gestures: () => (!phone.matches ? "cooperative" : full ? "free" : "locked"),
     onZoom: (t) => {
       transform = t;
       world.attr("transform", t.toString());
@@ -147,7 +156,7 @@ export function mountNetworkMap(
     fitTo(svg, zoom, box(), pts, pts.length > 1 ? 34 : 120, duration, pts.length > 1 ? 6 : 3, reduced);
   }
   wireZoomButtons(stage, svg, zoom, reduced, () => frame(700));
-  if (touch) flashHint("حرّك الخريطة بإصبعين");
+  if (touch && !phone.matches) flashHint("حرّك الخريطة بإصبعين");
 
   function show(next: Side) {
     side = next;
@@ -211,6 +220,10 @@ export function mountNetworkMap(
 
   return {
     show,
+    setFull(on) {
+      full = on;
+      frame(0);
+    },
     destroy() {
       resizer.disconnect();
       svg.interrupt();

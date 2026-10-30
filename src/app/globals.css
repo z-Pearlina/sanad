@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* The phone layouts: narrow windows, and a phone on its side (PHONE_QUERY in sanad-map/phone.ts). */
+@custom-variant phone (@media (max-width: 860px), (max-height: 500px) and (pointer: coarse));
+
 /*
   Sanad palette: a page of a hadith manuscript. The ground is parchment, the
   text is iron-gall ink, and the accents are the earth pigments of the scribes.
@@ -149,6 +152,99 @@ input:focus-visible,
   }
   .page-body {
     padding: 8px 8px 22px;
+  }
+}
+
+/* ---------------------------------------------------------------- phone header
+   One compact bar on every page (PhoneBar.tsx). The same conditions as PHONE_QUERY in
+   sanad-map/phone.ts: narrow windows, and a phone on its side. */
+.phone-bar {
+  display: none;
+}
+.wide-only {
+  display: flex;
+}
+@media (max-width: 860px), (max-height: 500px) and (pointer: coarse) {
+  .wide-only {
+    display: none;
+  }
+  .phone-bar {
+    position: relative;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+    padding-inline: 12px 6px;
+    background: var(--raqq);
+  }
+  .phone-bar-mark {
+    display: flex;
+    align-items: center;
+    min-width: 44px;
+    height: 44px;
+    font-size: 28px;
+    line-height: 1;
+    color: var(--midad);
+  }
+  .phone-bar-button {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    color: var(--midad);
+  }
+  .phone-menu {
+    position: absolute;
+    top: calc(100% + 1px);
+    left: 6px;
+    width: min(250px, calc(100vw - 24px));
+    display: flex;
+    flex-direction: column;
+    padding: 6px 14px 8px;
+    background: var(--raqq);
+    border: 1px solid var(--khatt);
+    box-shadow: 0 10px 24px rgb(0 0 0 / 0.18);
+  }
+  .phone-menu p {
+    margin: 0;
+    padding: 8px 0;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--midad-soft);
+    border-bottom: 1px solid var(--khatt);
+  }
+  .phone-menu a {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--nila);
+  }
+  /* on the home map the bar lies over the map, which fills the screen */
+  .home-map .phone-bar {
+    position: fixed;
+    inset: 0 0 auto;
+    z-index: 30;
+    height: calc(56px + env(safe-area-inset-top, 0px));
+    padding-top: env(safe-area-inset-top, 0px);
+    border-bottom: 1px solid var(--khatt);
+  }
+}
+/* on its side the home map's bar crowns the column beside the map */
+@media (max-width: 860px) and (max-height: 500px), (max-height: 500px) and (pointer: coarse) {
+  .home-map .phone-bar {
+    inset: 0 0 auto auto;
+    width: 300px;
+    height: 44px;
+  }
+}
+/* grain without blending: touch screens and small screens paint it far more cheaply */
+@media (max-width: 860px), (pointer: coarse) {
+  .page-grain {
+    mix-blend-mode: normal;
+    opacity: 0.25;
   }
 }
 

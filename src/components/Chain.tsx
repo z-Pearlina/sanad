@@ -102,26 +102,26 @@ function Narrator({
             href={`/narrator/?id=${id}`}
             onFocus={() => onPoint?.(id)}
             onBlur={() => onPoint?.(null)}
-            className={`naskh text-xl font-bold text-nila hover:underline ${pointed ? "underline" : ""}`}
+            className={`naskh text-xl font-bold text-nila hover:underline phone:inline-block phone:min-h-11 phone:min-w-11 ${pointed ? "underline" : ""}`}
           >
             {link.raw}
           </Link>
           {link.conf !== null && link.conf < 1 && (
             <span className="rounded-sm border border-khatt px-1.5 text-xs text-midad-soft" title={`ثقة التعرّف ${link.conf}`}>
-              تعرّف آلي
+              تعرّف آلي<span className="hidden phone:inline"> ({link.conf})</span>
             </span>
           )}
         </p>
-        <p className="line-clamp-2 text-sm text-midad-soft">{link.name}</p>
+        <p className="line-clamp-2 text-sm text-midad-soft phone:line-clamp-none">{link.name}</p>
         {/* some extracted phrases run on for lines (Abu Hurayra's name dispute); the full entry is on the narrator page */}
-        <p className="mt-0.5 line-clamp-2 text-[0.95rem]" title={link.phrase ?? undefined}>
+        <p className="mt-0.5 line-clamp-2 text-[0.95rem] phone:line-clamp-none" title={link.phrase ?? undefined}>
           {link.phrase ? (
             <>
               <span className="naskh">«{link.phrase}»</span>
               <span className="text-midad-soft"> · {GROUP_LABEL[link.group ?? "see"]}</span>
             </>
           ) : (
-            <Link href={`/narrator/?id=${id}`} className="text-nila underline underline-offset-4">
+            <Link href={`/narrator/?id=${id}`} className="text-nila underline underline-offset-4 phone:inline-flex phone:min-h-11 phone:items-center">
               {GROUP_LABEL.see}
             </Link>
           )}

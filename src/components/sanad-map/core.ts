@@ -89,15 +89,21 @@ export type ZoomSetup = {
   /** A zoom started by the user (not by fitTo). */
   onUserStart?: () => void;
   onZoom: (t: ZoomTransform) => void;
+  /** A gesture or a camera move has ended. */
+  onEnd?: () => void;
+  /** A map inside a page, on a phone: "locked" takes no gestures, "free" takes them all (full screen). */
+  gestures?: () => "cooperative" | "locked" | "free";
 };
 
 export function createZoom(s: ZoomSetup): ZoomBehavior<SVGSVGElement, unknown> {
-  const zoom = d3zoom<SVGSVGElement, unknown>()
+  // kept up to date from outside the gesture, which must not read the page's layout
+  let size: [number, number] = [Math.max(1, s.stage.clientWidth), Math.max(1, s.stage.clientHeight)];
+  new ResizeObserver(() => {
     // measured from the box, so a hidden map (display: none) never throws
-    .extent(() => [
-      [0, 0],
-      [Math.max(1, s.stage.clientWidth), Math.max(1, s.stage.clientHeight)],
-    ])
+    size = [Math.max(1, s.stage.clientWidth), Math.max(1, s.stage.clientHeight)];
+  }).observe(s.stage);
+  const zoom = d3zoom<SVGSVGElement, unknown>()
+    .extent(() => [[0, 0], size])
     .scaleExtent([0.3, 12])
     .translateExtent([
       [-700, -520],
@@ -107,9 +113,13 @@ export function createZoom(s: ZoomSetup): ZoomBehavior<SVGSVGElement, unknown> {
       if (!e.sourceEvent) return;
       s.onUserStart?.();
     })
-    .on("zoom", (e: D3ZoomEvent<SVGSVGElement, unknown>) => s.onZoom(e.transform));
+    .on("zoom", (e: D3ZoomEvent<SVGSVGElement, unknown>) => s.onZoom(e.transform))
+    .on("end", () => s.onEnd?.());
   if (s.cooperative) {
     zoom.filter((event: Event) => {
+      const gestures = s.gestures?.() ?? "cooperative";
+      if (gestures === "locked") return false;
+      if (gestures === "free") return !(event as MouseEvent).button;
       if (event.type === "wheel") {
         const w = event as WheelEvent;
         if (w.ctrlKey || w.metaKey) return true;
@@ -150,6 +160,21 @@ export function fitTo(
   const tx = (box.x0 + box.x1) / 2 - (k * (bx0 + bx1)) / 2;
   const ty = (box.y0 + box.y1) / 2 - (k * (by0 + by1)) / 2;
   const t = zoomIdentity.translate(tx, ty).scale(k);
+  if (duration && !reduced) svg.transition().duration(duration).ease(easeCubicInOut).call(zoom.transform, t);
+  else svg.call(zoom.transform, t);
+}
+
+/** Moves the camera so `xy` stands at the centre of `box`, at the same scale. */
+export function centerOn(
+  svg: SvgSel,
+  zoom: ZoomBehavior<SVGSVGElement, unknown>,
+  box: Box,
+  xy: XY,
+  k: number,
+  duration: number,
+  reduced: boolean,
+) {
+  const t = zoomIdentity.translate((box.x0 + box.x1) / 2 - k * xy[0], (box.y0 + box.y1) / 2 - k * xy[1]).scale(k);
   if (duration && !reduced) svg.transition().duration(duration).ease(easeCubicInOut).call(zoom.transform, t);
   else svg.call(zoom.transform, t);
 }

@@ -188,7 +188,7 @@ function People({ title, note, people }: { title: string; note: string; people: 
   const max = Math.max(1, ...people.map((r) => r.count));
   const row = (r: NarratorRef) => (
     <li key={r.id} className="grid grid-cols-[minmax(0,1fr)_minmax(3rem,7rem)_2.5rem] items-center gap-3 py-1.5">
-      <Link href={`/narrator/?id=${r.id}`} title={r.name ?? undefined} className="naskh line-clamp-1 text-lg text-nila hover:underline">
+      <Link href={`/narrator/?id=${r.id}`} title={r.name ?? undefined} className="naskh line-clamp-1 text-lg text-nila hover:underline phone:min-h-11">
         {r.short ?? r.name}
       </Link>
       <span className="relative h-1.5 bg-mughra/25" aria-hidden="true">
@@ -212,7 +212,7 @@ function People({ title, note, people }: { title: string; note: string; people: 
           <ul className="divide-y divide-khatt">{people.slice(0, SHOWN_PEOPLE).map(row)}</ul>
           {people.length > SHOWN_PEOPLE && (
             <details className="mt-1">
-              <summary className="cursor-pointer text-sm text-nila">البقية ({people.length - SHOWN_PEOPLE})</summary>
+              <summary className="cursor-pointer text-sm text-nila phone:flex phone:min-h-11 phone:items-center">البقية ({people.length - SHOWN_PEOPLE})</summary>
               <ul className="divide-y divide-khatt">{people.slice(SHOWN_PEOPLE).map(row)}</ul>
             </details>
           )}
@@ -227,7 +227,7 @@ function HadithNumbers({ numbers }: { numbers: string[] }) {
     <li key={n}>
       <Link
         href={`/hadith/?n=${n}`}
-        className="inline-block min-w-12 rounded-sm border border-khatt px-2 py-0.5 text-center text-sm tabular-nums hover:border-nila hover:text-nila"
+        className="inline-block min-w-12 rounded-sm border border-khatt px-2 py-0.5 text-center text-sm tabular-nums hover:border-nila hover:text-nila phone:grid phone:min-h-11 phone:place-items-center"
       >
         {n}
       </Link>
@@ -238,7 +238,7 @@ function HadithNumbers({ numbers }: { numbers: string[] }) {
       <ul className="flex flex-wrap gap-1.5">{numbers.slice(0, SHOWN_HADITHS).map(link)}</ul>
       {numbers.length > SHOWN_HADITHS && (
         <details className="mt-2">
-          <summary className="cursor-pointer text-sm text-nila">البقية ({numbers.length - SHOWN_HADITHS})</summary>
+          <summary className="cursor-pointer text-sm text-nila phone:flex phone:min-h-11 phone:items-center">البقية ({numbers.length - SHOWN_HADITHS})</summary>
           <ul className="mt-2 flex flex-wrap gap-1.5">{numbers.slice(SHOWN_HADITHS).map(link)}</ul>
         </details>
       )}

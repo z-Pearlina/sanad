@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import FullMap from "./FullMap";
 import { count, fmt } from "./arabic";
 import { mountChainMap, type ChainMapControls, type ChainSummary } from "./chain";
 import { getData } from "@/lib/data";
@@ -73,7 +74,9 @@ export default function HadithMap({ nodes, label, focus, onStep }: Props) {
 
   return (
     <figure>
-      <div ref={ref} className="sanad-map sm-embed" dir="rtl" lang="ar" />
+      <FullMap onChange={(full) => controls.current?.setFull(full)}>
+        <div ref={ref} className="sanad-map sm-embed" dir="rtl" lang="ar" />
+      </FullMap>
       <figcaption className="mt-3 space-y-3">
         {summary && (
           <div className="chain-summary flex flex-wrap items-end gap-x-6 gap-y-3 border-y border-khatt py-3" aria-live="polite">
@@ -89,7 +92,7 @@ export default function HadithMap({ nodes, label, focus, onStep }: Props) {
             <button
               type="button"
               onClick={() => controls.current?.replay()}
-              className="ms-auto rounded-sm border border-nila px-3 py-1.5 text-sm text-nila hover:bg-nila hover:text-raqq"
+              className="ms-auto rounded-sm border border-nila px-3 py-1.5 text-sm text-nila hover:bg-nila hover:text-raqq phone:min-h-11"
             >
               أعد الرسم
             </button>

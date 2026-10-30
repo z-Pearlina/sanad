@@ -22,7 +22,7 @@ export default function HadithText({ text, isnads, focus = null, onPoint }: Prop
     if (chain.start < pos) return; // overlapping chains: keep the first
     if (chain.start > pos) parts.push(<Matn key={`m${ci}`} text={text.slice(pos, chain.start)} />);
     parts.push(
-      <span key={`c${ci}`} className="text-[1.15rem]">
+      <span key={`c${ci}`} className="text-[1.15rem] phone:text-[19px]">
         {chain.segments.map(([t, kind, id], i) => {
           if (kind === "tr") return <span key={i} className="text-zinjafr">{t}</span>;
           if (kind === "name" && id)

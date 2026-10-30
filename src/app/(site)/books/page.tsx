@@ -45,7 +45,11 @@ export default function BooksPage() {
             >
               <span className="text-sm tabular-nums text-midad-soft">{s.no}</span>
               <span className="flex min-w-0 items-baseline gap-2">
-                <span className="naskh text-xl leading-normal group-hover:text-nila">{s.ar}</span>
+                <span className="naskh text-xl leading-normal group-hover:text-nila">
+                  {s.ar}
+                  {/* the English title is a hover on the desktop, and a phone has no hover */}
+                  {s.en && <span lang="en" dir="ltr" className="hidden font-sans text-xs text-midad-soft phone:block phone:text-start">{s.en}</span>}
+                </span>
                 <span className="hidden min-w-4 flex-1 border-b border-dotted border-midad-soft/50 sm:block" aria-hidden="true" />
               </span>
               <span className="flex items-center gap-3 text-sm">

@@ -19,9 +19,9 @@ export default function NotFound() {
           دارة غُفل: لم نعرف صاحب هذا الرابط، فلعله نُقل أو كُتب على غير وجهه.
         </p>
         <nav className="mt-8 flex gap-6 text-nila" aria-label="إلى أين؟">
-          <Link href="/" className="underline underline-offset-4">الخريطة</Link>
-          <Link href="/search/" className="underline underline-offset-4">البحث</Link>
-          <Link href="/books/" className="underline underline-offset-4">الكتب</Link>
+          <Link href="/" className="underline underline-offset-4 phone:flex phone:min-h-11 phone:min-w-11 phone:items-center phone:justify-center">الخريطة</Link>
+          <Link href="/search/" className="underline underline-offset-4 phone:flex phone:min-h-11 phone:min-w-11 phone:items-center phone:justify-center">البحث</Link>
+          <Link href="/books/" className="underline underline-offset-4 phone:flex phone:min-h-11 phone:min-w-11 phone:items-center phone:justify-center">الكتب</Link>
         </nav>
       </main>
     </PageFrame>

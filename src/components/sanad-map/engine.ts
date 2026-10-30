@@ -3,17 +3,18 @@
 // is built and owned here, and mountSanadMap returns a function that removes
 // it again with all its timers and listeners.
 
-import { select } from "d3-selection";
+import { pointer, select } from "d3-selection";
 import { zoomIdentity, type ZoomTransform } from "d3-zoom";
 import "d3-transition";
 import { easeCubicOut } from "d3-ease";
 import { interpolateRound } from "d3-interpolate";
 import { ORD, count, esc, fmt, words, type Noun } from "./arabic";
 import {
-  ANCHOR, DX, DY, PLACE, WORLD_MARKUP, ZOOM_MARKUP, cityViews, createChainLayer, createZoom, drawBase,
+  ANCHOR, DX, DY, PLACE, WORLD_MARKUP, ZOOM_MARKUP, centerOn, cityViews, createChainLayer, createZoom, drawBase,
   fitTo as fitView, journeyPlaces, journeySummary, placeGeoLabels, placeNodes, wireZoomButtons,
   type CityView, type Placed, type XY,
 } from "./core";
+import { LIGHT_QUERY, PHONE_QUERY, SIDE_QUERY, createSheet, pickLabels, type Box, type Dot, type LabelItem } from "./phone";
 import type { Flow, Geometry, Journey, JourneyNode, MapData, NavLink } from "./types";
 
 export type SanadMapOptions = {
@@ -40,6 +41,11 @@ const MAJOR = new Set(["madina", "makka", "kufa", "basra", "baghdad", "dimashq",
 const ICON_PLAY = `<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M11 1.5v11L2.5 7z"/></svg>`;
 const ICON_PAUSE = `<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 2h3v10H3zM8 2h3v10H8z"/></svg>`;
 const CORNER = `<path d="M0-10 3-3 10 0 3 3 0 10-3 3-10 0-3-3Z"/><circle r="2"/>`;
+const JOURNEY_BUTTON = `
+      <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><circle cx="2.5" cy="11.5" r="2" fill="currentColor"/><circle cx="11.5" cy="2.5" r="2" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M3.6 10.2C5 6 8 8 10.4 3.7" fill="none" stroke="currentColor" stroke-width="1.4" stroke-dasharray="2 2"/></svg>
+      تتبّع رحلة حديث`;
+const PHONE_HINT = "اسحب بإصبع، وكبّر بإصبعين، واضغط على مدينة";
+const HINT_SEEN = "sanad-map-hint-seen";
 
 function markup(nav: NavLink[], cooperative: boolean, hint: string): string {
   const links = nav.length
@@ -59,7 +65,6 @@ ${WORLD_MARKUP}
       <g class="sm-journey"></g>
     </g>
   </svg>
-  <div class="sm-band" aria-hidden="true"></div>
   <div class="sm-frame" aria-hidden="true">
     <svg class="sm-c1" viewBox="-11 -11 22 22">${CORNER}</svg>
     <svg class="sm-c2" viewBox="-11 -11 22 22">${CORNER}</svg>
@@ -71,24 +76,36 @@ ${WORLD_MARKUP}
     <p class="sm-tagline">رجال صحيح البخاري في الزمان والمكان</p>
     ${links}
   </header>
-  <div class="sm-tools">
-${ZOOM_MARKUP}
-    <button type="button" class="sm-journey-btn">
-      <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><circle cx="2.5" cy="11.5" r="2" fill="currentColor"/><circle cx="11.5" cy="2.5" r="2" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M3.6 10.2C5 6 8 8 10.4 3.7" fill="none" stroke="currentColor" stroke-width="1.4" stroke-dasharray="2 2"/></svg>
-      تتبّع رحلة حديث
-    </button>
-  </div>
   <svg class="sm-compass" viewBox="-32 -42 64 76" aria-hidden="true">
     <text x="0" y="-30" text-anchor="middle">الشمال</text>
     <path d="M0-24 7-7 24 0 7 7 0 24-7 7-24 0-7-7Z"/>
     <path d="M-17-17 0-10 17-17 10 0 17 17 0 10-17 17-10 0Z" opacity=".55"/>
     <path class="sm-north" d="M0-24 4-6H-4Z"/>
   </svg>
-  <aside class="sm-panel" aria-label="تفاصيل"></aside>
-  <nav class="sm-timeline" aria-label="الطبقات">
-    <button type="button" class="sm-play"></button>
-    <div class="sm-gens"><div class="sm-progress"></div></div>
-  </nav>
+  <div class="sm-sheet">
+    <div class="sm-tools">
+${ZOOM_MARKUP}
+      <button type="button" class="sm-journey-btn">${JOURNEY_BUTTON}
+      </button>
+    </div>
+    <aside class="sm-panel" aria-label="تفاصيل"></aside>
+    <div class="sm-sheet-head">
+      <button type="button" class="sm-sheet-toggle" aria-label="إظهار اللوحة أو إخفاؤها"></button>
+      <div class="sm-sheet-row">
+        <p class="sm-sheet-title" role="heading" aria-level="2"></p>
+        <button type="button" class="sm-journey-btn">${JOURNEY_BUTTON}
+        </button>
+      </div>
+      <div class="sm-now">
+        <div class="sm-now-who"></div>
+        <div class="sm-now-controls"></div>
+      </div>
+      <nav class="sm-timeline" aria-label="الطبقات">
+        <button type="button" class="sm-play"></button>
+        <div class="sm-gens"><div class="sm-progress"></div></div>
+      </nav>
+    </div>
+  </div>
   <div class="sm-hint" aria-hidden="true">${esc(hint)}</div>
   <div class="sm-tip" hidden></div>
   <p class="sm-sr" aria-live="polite"></p>
@@ -134,10 +151,24 @@ export function mountSanadMap(
   const tip = el<HTMLDivElement>(".sm-tip");
   const hint = el<HTMLDivElement>(".sm-hint");
   const live = el<HTMLParagraphElement>(".sm-sr");
-  const timeline = el<HTMLElement>(".sm-timeline");
   const gensEl = el<HTMLDivElement>(".sm-gens");
   const progress = el<HTMLDivElement>(".sm-progress");
   const playBtn = el<HTMLButtonElement>(".sm-play");
+  const citiesLayer = select(el<SVGGElement>(".sm-cities"));
+  const sheetEl = el<HTMLElement>(".sm-sheet");
+  const head = el<HTMLElement>(".sm-sheet-head");
+  const headTitle = el<HTMLElement>(".sm-sheet-title");
+  const nowWho = el<HTMLElement>(".sm-now-who");
+  const nowControls = el<HTMLElement>(".sm-now-controls");
+
+  // the phone layouts: a bottom sheet upright, a side column on its side (see phone.ts)
+  const phoneQuery = window.matchMedia(PHONE_QUERY);
+  const sideQuery = window.matchMedia(SIDE_QUERY);
+  const lightQuery = window.matchMedia(LIGHT_QUERY);
+  let phone = phoneQuery.matches;
+  let side = sideQuery.matches;
+  const upright = () => phone && !side;
+  const sheet = createSheet(stage, sheetEl, head, el<HTMLElement>(".sm-sheet-toggle"), onStop);
 
   const hadithHref = (n: number) => (opts.hadithHref ? opts.hadithHref.replace("{n}", String(n)) : "");
   const narratorHref = (id: string) =>
@@ -161,6 +192,9 @@ export function mountSanadMap(
   let hintTimer = 0;
   let flashTimer = 0;
   let onScreen = true;
+  // on a phone the camera follows the generations until the visitor first touches the map
+  let follow = true;
+  let zoomFrame = 0;
 
   const cities: CityView[] = cityViews(DATA.cities, GEO);
   const cityById = new Map(cities.map((c) => [c.id, c]));
@@ -183,6 +217,7 @@ export function mountSanadMap(
         .attr("class", (d) => "sm-city" + (d.region ? " sm-region" : ""))
         .attr("tabindex", 0)
         .attr("role", "button");
+      g.append("circle").attr("class", "sm-hit").attr("r", 18);
       g.append("circle").attr("class", "sm-pulse").attr("r", 8);
       g.append("circle").attr("class", "sm-bubble").attr("r", 0);
       g.filter((d) => !d.region).append("circle").attr("class", "sm-ring").attr("r", 4.6);
@@ -199,7 +234,7 @@ export function mountSanadMap(
   cityG
     .on("click", (e: MouseEvent, d) => {
       e.stopPropagation();
-      openCity(d.id);
+      openCity(phone ? nearestCity(e, d) : d.id);
     })
     .on("keydown", (e: KeyboardEvent, d) => {
       if (e.key === "Enter" || e.key === " ") {
@@ -208,17 +243,28 @@ export function mountSanadMap(
       }
     })
     .on("mouseenter", (e: MouseEvent, d) => {
+      if (touch) return;
       showTip(e, d);
       if (mode !== "journey") setFocus(d.id);
     })
-    .on("mousemove", (e: MouseEvent, d) => showTip(e, d))
+    .on("mousemove", (e: MouseEvent, d) => {
+      if (!touch) showTip(e, d);
+    })
     .on("mouseleave", () => {
+      if (touch) return;
       hideTip();
       if (mode !== "journey") setFocus(selected);
     })
     .on("focus", () => {
       cityG.classed("sm-hidden-label", false);
     });
+
+  // touch circles overlap where cities stand close: the finger means the nearest one
+  function nearestCity(e: MouseEvent, tapped: CityView) {
+    const [x, y] = pointer(e, svgEl);
+    const dist = (c: CityView) => Math.hypot(sx(c.xy) - x, sy(c.xy) - y);
+    return cities.reduce((best, c) => (dist(c) < dist(best) ? c : best), tapped).id;
+  }
 
   function showTip(e: MouseEvent, d: CityView) {
     const n = spreadOf(gen, d.id);
@@ -278,7 +324,8 @@ export function mountSanadMap(
       .attr("d", (d) => arcD(d.a, d.b))
       .attr("stroke-width", (d) => arcWidth(d.n))
       .style("opacity", arcOpacity);
-    if (animate && !reduced) {
+    // a slow phone keeps its frames for the comets: the lines appear at once
+    if (animate && !reduced && !lightQuery.matches) {
       entered.each(function (_d, i) {
         const L = this.getTotalLength();
         select(this)
@@ -303,7 +350,8 @@ export function mountSanadMap(
   let lastT = 0;
   function setupParticles() {
     if (reduced) return;
-    particles = arcData.slice(0, 14).map((d, i) => ({
+    const light = lightQuery.matches;
+    particles = arcData.slice(0, light ? 6 : 14).map((d, i) => ({
       key: d.key,
       t: (i * 0.137) % 1,
       speed: 0.2 + 0.05 * Math.log10(d.n + 1),
@@ -313,13 +361,13 @@ export function mountSanadMap(
       .data(particles, (p) => p.key)
       .join((enter) => {
         const g = enter.append("g").attr("class", "sm-comet");
-        [3.4, 2.6, 1.9, 1.3].forEach((r, i) =>
+        (light ? [3.4, 1.9] : [3.4, 2.6, 1.9, 1.3]).forEach((r, i) =>
           g
             .append("circle")
             .attr("class", "sm-particle")
             .attr("r", r)
-            .attr("data-lag", i)
-            .style("opacity", [1, 0.55, 0.32, 0.16][i]),
+            .attr("data-lag", light ? i * 2 : i)
+            .style("opacity", (light ? [1, 0.4] : [1, 0.55, 0.32, 0.16])[i]),
         );
         return g;
       });
@@ -363,15 +411,19 @@ export function mountSanadMap(
   function place() {
     const k = transform.k;
     cityG.attr("transform", (d) => `translate(${sx(d.xy).toFixed(1)},${sy(d.xy).toFixed(1)})`);
-    cityG.classed("sm-hidden-label", (d) => {
-      if (d.id === selected) return false;
-      if (journeyCities.has(d.id)) return false;
-      if (mode === "journey") return true;
-      if (d.region) return k < 1.3 && !spreadOf(gen, d.id);
-      if (MAJOR.has(d.id)) return false;
-      if (k >= 2.2) return false;
-      return spreadOf(gen, d.id) < 12;
-    });
+    // on a phone the circles grow as the map does, and the names are chosen when the gesture ends
+    if (phone) citiesLayer.style("--sm-bubble-k", Math.max(0.3, Math.min(1, k / 1.3)).toFixed(3));
+    else {
+      cityG.classed("sm-hidden-label", (d) => {
+        if (d.id === selected) return false;
+        if (journeyCities.has(d.id)) return false;
+        if (mode === "journey") return true;
+        if (d.region) return k < 1.3 && !spreadOf(gen, d.id);
+        if (MAJOR.has(d.id)) return false;
+        if (k >= 2.2) return false;
+        return spreadOf(gen, d.id) < 12;
+      });
+    }
     cityG
       .filter((d) => Boolean(d.region))
       .select<SVGTextElement>(".sm-label")
@@ -381,7 +433,56 @@ export function mountSanadMap(
     placeJourney(false);
   }
 
+  // ---------------------------------------------------------------- city names on a phone
+  const labelBoxes = new Map<string, Box>();
+  function measureLabels() {
+    cityG.each(function (d) {
+      const text = this.querySelector<SVGTextElement>("text.sm-label");
+      if (!text) return;
+      const b = text.getBBox();
+      const y = d.region && journeyCities.has(d.id) ? b.y - 24 : b.y; // regions on a chain write lower down
+      labelBoxes.set(d.id, { x0: b.x, y0: y, x1: b.x + b.width, y1: y + b.height });
+    });
+  }
+  function layoutLabels() {
+    if (!phone) return;
+    if (!labelBoxes.size) measureLabels();
+    const k = transform.k;
+    const wanted = (d: CityView) => {
+      if (d.id === selected || journeyCities.has(d.id)) return true;
+      if (mode === "journey") return false;
+      if (d.region) return k >= 1.3 || spreadOf(gen, d.id) > 0;
+      return MAJOR.has(d.id) || k >= 2.2 || spreadOf(gen, d.id) > 0;
+    };
+    const rank = (d: CityView) => (d.id === selected ? 0 : journeyCities.has(d.id) ? 1 : MAJOR.has(d.id) ? 2 : 3);
+    const items: LabelItem[] = cities
+      .filter(wanted)
+      .sort((a, b) => rank(a) - rank(b) || spreadOf(gen, b.id) - spreadOf(gen, a.id))
+      .flatMap((d) => {
+        const local = labelBoxes.get(d.id);
+        if (!local) return [];
+        const x = sx(d.xy);
+        const y = sy(d.xy) + (d.region && journeyCities.has(d.id) ? 24 : 0);
+        return [{ id: d.id, force: d.id === selected, box: { x0: x + local.x0, y0: y + local.y0, x1: x + local.x1, y1: y + local.y1 } }];
+      });
+    const dots: Dot[] = cities.filter((c) => !c.region).map((c) => ({ id: c.id, x: sx(c.xy), y: sy(c.xy) }));
+    const v = viewBox();
+    const shown = pickLabels(items, dots, { x0: 0, y0: v.y0 - 14, x1: v.x1 + 14, y1: stage.clientHeight - (upright() ? sheet.visible() : 0) });
+    cityG.classed("sm-hidden-label", (d) => !shown.has(d.id));
+  }
+
   // ---------------------------------------------------------------- zoom
+  function applyZoom() {
+    zoomFrame = 0;
+    world.attr("transform", transform.toString());
+    place();
+  }
+  // a touch on the map stops the generations and hands the camera to the visitor
+  function touched() {
+    follow = false;
+    window.clearTimeout(autoplayTimer);
+    stopPlay();
+  }
   const zoom = createZoom({
     stage,
     svg,
@@ -392,29 +493,32 @@ export function mountSanadMap(
     onUserStart: () => {
       hideTip();
       dismissHint();
+      if (phone) touched();
     },
     onZoom: (t) => {
       transform = t;
-      world.attr("transform", transform.toString());
-      place();
+      // a slow phone gets several touch moves a frame: draw only the last
+      if (!lightQuery.matches) applyZoom();
+      else if (!zoomFrame) zoomFrame = requestAnimationFrame(applyZoom);
     },
+    onEnd: () => layoutLabels(),
   });
   svg.on("click", () => {
     if (mode === "city") showGen();
+    if (upright()) sheet.set("min");
   });
 
   function viewBox() {
+    if (phone) {
+      const w = stage.clientWidth;
+      const h = stage.clientHeight;
+      if (side) return { x0: 12, x1: w - sheetEl.offsetWidth - 12, y0: 16, y1: h - 16 };
+      // the map between the top bar and the sheet as it stands; behind a raised sheet, as at half height
+      const bar = document.querySelector(".phone-bar")?.getBoundingClientRect().bottom ?? 0;
+      return { x0: 14, x1: w - 14, y0: bar + 14, y1: h - Math.min(sheet.visible(), h / 2) - 14 };
+    }
     const r = stage.getBoundingClientRect();
-    const narrow = r.width <= 860;
-    const panelW = narrow ? 0 : panel.offsetWidth + 50;
-    const panelH = narrow ? r.height * (mode === "journey" ? 0.42 : 0.46) : 0;
-    const top = narrow ? (nav.length ? 170 : 150) : 120;
-    return {
-      x0: narrow ? 16 : 40,
-      x1: narrow ? r.width - 16 : r.width - panelW,
-      y0: top,
-      y1: narrow ? r.height - panelH - (mode === "journey" ? 30 : 70) : r.height - 120,
-    };
+    return { x0: 40, x1: r.width - (panel.offsetWidth + 50), y0: 120, y1: r.height - 120 };
   }
   function fitTo(points: XY[], pad = 30, duration = 0, extraLeft = 0, maxK = 12, inset = 0) {
     const v = viewBox();
@@ -424,7 +528,12 @@ export function mountSanadMap(
     v.y1 -= inset * 0.6;
     fitView(svg, zoom, v, points, pad, duration, maxK, reduced);
   }
-  const home = (duration = 0) => fitTo(homePoints, 26, duration);
+  // a phone frames the cities that have narrators in this generation
+  function generationPoints() {
+    const points = cities.filter((c) => spreadOf(gen, c.id) > 0).map((c) => c.xy);
+    return points.length > 1 ? points : homePoints;
+  }
+  const home = (duration = 0) => (phone ? fitTo(generationPoints(), 32, duration, 0, 2.2) : fitTo(homePoints, 26, duration));
 
   wireZoomButtons(stage, svg, zoom, reduced, () => home(700));
 
@@ -471,10 +580,14 @@ export function mountSanadMap(
     const local = DATA.local[n] ?? {};
     cityG.classed("sm-empty", (d) => !spreadOf(n, d.id) && !d.region);
     cityG
-      .classed("sm-local", (d) => (local[d.id] ?? 0) >= 20 && !reduced)
+      .classed("sm-local", (d) => (local[d.id] ?? 0) >= 20 && !reduced && !lightQuery.matches)
       .attr("aria-label", (d) => `${d.name}: ${count(spreadOf(n, d.id), "rawi")} في الطبقة ${ORD[n]}`);
     drawArcs(animate);
     place();
+    if (phone) {
+      if (follow && animate) home(1100);
+      layoutLabels();
+    }
     if (mode === "gen") renderGen(animate);
     if (mode === "city" && selected) renderCity(selected);
     if (!playing) {
@@ -485,6 +598,9 @@ export function mountSanadMap(
 
   // ---------------------------------------------------------------- panel: generation
   const shown = { n: 0, l: 0 };
+  // the lowest sheet hides the panel: its text waits until the sheet is raised
+  const panelHidden = () => upright() && sheet.stop() === "min";
+  let panelStale = false;
   function countUp(numEl: HTMLElement | null, wordEl: HTMLElement | null, key: "n" | "l", noun: Noun, to: number) {
     if (!numEl || !wordEl) return;
     const paint = (v: number) => {
@@ -493,7 +609,7 @@ export function mountSanadMap(
     };
     const from = shown[key];
     shown[key] = to;
-    if (reduced || from === to) {
+    if (reduced || from === to || panelHidden()) {
       paint(to);
       return;
     }
@@ -511,8 +627,10 @@ export function mountSanadMap(
     const top4 = ranked.slice(0, 4);
     const max = top4.length ? top4[0][1] : 1;
     const quote = T.example ? `${T.title}، ${T.example}` : T.title;
+    headTitle.textContent = `الطبقة ${ORD[gen]}`;
+    panelStale = panelHidden();
+    if (panelStale) return;
     panel.innerHTML = `
-      <button type="button" class="sm-sheet-toggle" aria-label="إظهار اللوحة أو إخفاؤها"></button>
       <h2 class="sm-title">الطبقة ${ORD[gen]}</h2>
       <blockquote class="sm-quote">«${esc(quote)}»<cite>ابن حجر، مقدمة تقريب التهذيب</cite></blockquote>
       <div class="sm-chips"><span class="sm-chip sm-era">${esc(T.era)}</span></div>
@@ -541,7 +659,6 @@ export function mountSanadMap(
     panel.querySelectorAll<HTMLButtonElement>("[data-city]").forEach((b) =>
       b.addEventListener("click", () => openCity(b.dataset.city ?? "")),
     );
-    wireSheet();
   }
 
   // ---------------------------------------------------------------- panel: city
@@ -556,7 +673,11 @@ export function mountSanadMap(
     setFocus(id);
     renderCity(id);
     place();
-    setCollapsed(false);
+    if (phone) {
+      if (upright()) sheet.set("half");
+      centerOn(svg, zoom, viewBox(), cityById.get(id)!.xy, transform.k, 650, reduced);
+      layoutLabels();
+    }
   }
   function renderCity(id: string) {
     const c = cityById.get(id);
@@ -570,8 +691,8 @@ export function mountSanadMap(
     const outbound = flows.filter((f) => f.from === id).slice(0, 5);
     const list = (arr: Flow[], key: "from" | "to") =>
       arr.map((f) => `<b>${esc(cityById.get(f[key])?.name ?? f[key])}</b> (${fmt(f.n)})`).join("، ");
+    headTitle.textContent = c.name;
     panel.innerHTML = `
-      <button type="button" class="sm-sheet-toggle" aria-label="إظهار اللوحة أو إخفاؤها"></button>
       <button type="button" class="sm-back">→ عودة إلى الطبقة ${ORD[gen]}</button>
       <h2 class="sm-title">${esc(c.name)}</h2>
       ${c.region ? `<div class="sm-chips"><span class="sm-chip">إقليم</span></div>` : ""}
@@ -618,7 +739,6 @@ export function mountSanadMap(
     panel.querySelectorAll<HTMLButtonElement>("[data-gen]").forEach((b) =>
       b.addEventListener("click", () => setGen(Number(b.dataset.gen), true)),
     );
-    wireSheet();
   }
   function showGen() {
     mode = "gen";
@@ -627,6 +747,7 @@ export function mountSanadMap(
     setFocus(null);
     renderGen(false);
     place();
+    layoutLabels();
   }
 
   // ---------------------------------------------------------------- play
@@ -674,6 +795,18 @@ export function mountSanadMap(
 
   // ---------------------------------------------------------------- hint
   hintTimer = window.setTimeout(dismissHint, 9000);
+  // a phone shows its own hint, once
+  if (phone) {
+    let seen = false;
+    try {
+      seen = window.localStorage.getItem(HINT_SEEN) === "1";
+      window.localStorage.setItem(HINT_SEEN, "1");
+    } catch {
+      // no storage: the hint simply shows again next time
+    }
+    hint.textContent = PHONE_HINT;
+    if (seen) dismissHint();
+  }
   function dismissHint() {
     hint.classList.add("sm-gone");
     window.clearTimeout(hintTimer);
@@ -685,15 +818,18 @@ export function mountSanadMap(
     flashTimer = window.setTimeout(() => hint.classList.add("sm-gone"), 1600);
   }
 
-  // ---------------------------------------------------------------- bottom sheet on phones
-  function setCollapsed(on: boolean) {
-    panel.classList.toggle("sm-collapsed", on);
-    timeline.classList.toggle("sm-low", on);
+  // ---------------------------------------------------------------- phone layout
+  function onStop() {
+    if (panelStale && mode === "gen") renderGen(false);
+    layoutLabels();
+    if (mode === "journey") updateChain();
   }
-  function wireSheet() {
-    panel.querySelector(".sm-sheet-toggle")?.addEventListener("click", () =>
-      setCollapsed(!panel.classList.contains("sm-collapsed")),
-    );
+  function applyLayout() {
+    const wasPhone = phone;
+    phone = phoneQuery.matches;
+    side = sideQuery.matches;
+    if (phone !== wasPhone) labelBoxes.clear();
+    sheet.setActive(upright());
   }
 
   // ---------------------------------------------------------------- journeys
@@ -705,21 +841,23 @@ export function mountSanadMap(
   let jNodes: Placed[] = [];
   let journeyCities = new Set<string>();
   const homeOf = (node: JourneyNode) => (node.city ? cityById.get(node.city) ?? null : null);
-  el<HTMLButtonElement>(".sm-journey-btn").addEventListener("click", () => {
-    stopPlay();
-    dismissHint();
-    openJourneyList();
-  });
+  stage.querySelectorAll<HTMLButtonElement>(".sm-journey-btn").forEach((b) =>
+    b.addEventListener("click", () => {
+      stopPlay();
+      dismissHint();
+      openJourneyList();
+    }),
+  );
   function openJourneyList() {
     if (mode === "journey") endJourney(false);
     mode = "list";
     selected = null;
     cityG.classed("sm-selected", false);
     setFocus(null);
-    setCollapsed(false);
+    if (upright()) sheet.set("full");
+    headTitle.textContent = "تتبّع رحلة حديث";
     const allReach = DATA.journeys.every((j) => j.prophet);
     panel.innerHTML = `
-      <button type="button" class="sm-sheet-toggle" aria-label="إظهار اللوحة أو إخفاؤها"></button>
       <button type="button" class="sm-back">→ عودة إلى الطبقات</button>
       <div><div class="sm-kicker">أحاديث مختارة</div><h2 class="sm-title">تتبّع رحلة حديث</h2></div>
       <p class="sm-note sm-plain" style="font-size:13.5px">اختر حديثاً لترى رجال سنده واحداً بعد واحد، ${allReach ? "من النبي ﷺ" : "من أوله"} إلى البخاري، في مواطنهم على الخريطة.</p>
@@ -736,7 +874,6 @@ export function mountSanadMap(
         if (j) startJourney(j);
       }),
     );
-    wireSheet();
   }
 
   function rowsOf(j: Journey) {
@@ -748,7 +885,7 @@ export function mountSanadMap(
     if (!journey) return;
     const pts = journeyPlaces(journey.nodes, homeOf).map((c) => c.xy);
     const longest = Math.max(1, ...Object.values(rowsOf(journey)));
-    fitTo(pts.length > 1 ? pts : homePoints, 20 + (longest - 1) * 20, duration, 0, 12, 46);
+    fitTo(pts.length > 1 ? pts : homePoints, 20 + (longest - 1) * 20, duration, 0, 12, phone ? 30 : 46);
   }
   function startJourney(j: Journey) {
     journey = j;
@@ -803,6 +940,7 @@ export function mountSanadMap(
     window.clearTimeout(jTimer);
     jStep = i;
     updateChain();
+    updateNow();
     renderJourneyControls();
     const last = i === journey.nodes.length - 1;
     const cur = homeOf(journey.nodes[i]);
@@ -810,7 +948,7 @@ export function mountSanadMap(
     const camera = reduced ? 0 : 850;
     if (cur) {
       const pts = prev ? [cur.xy, prev.xy] : [cur.xy];
-      fitTo(pts, 20 + rowIndex(i) * 20, camera, 0, 3, 50);
+      fitTo(pts, 20 + rowIndex(i) * 20, camera, 0, 3, phone ? 34 : 50);
     }
     if (back) {
       jVisible = i + 1;
@@ -829,6 +967,7 @@ export function mountSanadMap(
           jTimer = window.setTimeout(
             () => {
               jPlaying = false;
+              if (upright()) sheet.set("half");
               frameRoute(reduced ? 0 : 1400);
               showSummary();
               renderJourneyControls();
@@ -847,11 +986,9 @@ export function mountSanadMap(
   function renderJourneyPanel() {
     const j = journey;
     if (!j) return;
-    setCollapsed(false);
     panel.classList.add("sm-journey-panel");
     const link = hadithHref(j.number);
     panel.innerHTML = `
-      <button type="button" class="sm-sheet-toggle" aria-label="إظهار اللوحة أو إخفاؤها"></button>
       <button type="button" class="sm-back">→ عودة إلى الطبقات</button>
       <div><div class="sm-kicker">صحيح البخاري، رقم ${j.number}${link ? ` · <a class="sm-link" href="${esc(link)}" data-internal>صفحة الحديث</a>` : ""}</div>
       <h2 class="sm-title" style="font-size:26px">«${esc(j.title)}»</h2></div>
@@ -878,20 +1015,35 @@ export function mountSanadMap(
     // once the list has scrolled, fade its top edge so no half-cut line shows under the controls
     const scroller = panel.querySelector<HTMLElement>(".sm-j-scroll");
     scroller?.addEventListener("scroll", () => scroller.classList.toggle("sm-scrolled", scroller.scrollTop > 1), { passive: true });
+    updateNow();
     renderJourneyControls();
-    wireSheet();
+    sheet.measure();
+    if (upright()) sheet.set("min");
+  }
+  // a phone's lowest sheet: the narrator the chain has reached
+  function updateNow() {
+    if (!journey) return;
+    const n = journey.nodes[jStep];
+    const last = jStep === journey.nodes.length - 1;
+    nowWho.innerHTML = n
+      ? `<span class="sm-dara ${n.id ? "sm-full" : ""} sm-b-${n.b}" aria-hidden="true"></span><div>
+          <div class="sm-now-name">${personName(n.n, last ? undefined : n.id)}${n.tr && !last ? `<span class="sm-term">${esc(n.tr)}</span>` : ""}</div>
+          <div class="sm-meta">${esc(n.v || (last ? "صاحب الصحيح" : n.id ? "انظر الترجمة" : "لم تُعرف ترجمته"))}</div></div>`
+      : `<q class="sm-now-title">${esc(journey.title)}</q>`;
   }
   function renderJourneyControls() {
     const box = panel.querySelector<HTMLElement>(".sm-j-controls");
     if (!box || !journey) return;
     const atEnd = jStep >= journey.nodes.length - 1 && jVisible === journey.nodes.length;
-    box.innerHTML = `
+    const steps = `
       <button type="button" class="sm-btn" data-act="prev" ${jStep <= 0 ? "disabled" : ""}>السابق</button>
       <button type="button" class="sm-btn sm-primary" data-act="play">${atEnd ? "أعد الرحلة" : jPlaying ? "إيقاف" : "متابعة"}</button>
-      <button type="button" class="sm-btn" data-act="next" ${atEnd ? "disabled" : ""}>التالي</button>
+      <button type="button" class="sm-btn" data-act="next" ${atEnd ? "disabled" : ""}>التالي</button>`;
+    box.innerHTML = `${steps}
       <button type="button" class="sm-btn" data-act="other">حديث آخر</button>`;
+    nowControls.innerHTML = steps;
     const on = (act: string, fn: () => void) =>
-      box.querySelector(`[data-act="${act}"]`)?.addEventListener("click", fn);
+      [box, nowControls].forEach((b) => b.querySelector(`[data-act="${act}"]`)?.addEventListener("click", fn));
     on("prev", () => {
       jPlaying = false;
       window.clearTimeout(jTimer);
@@ -924,14 +1076,19 @@ export function mountSanadMap(
       li.classList.toggle("sm-seen", i < jStep);
     });
     const now = panel.querySelector<HTMLLIElement>(`.sm-chain li[data-i="${jStep}"]`);
-    const box = panel.querySelector<HTMLElement>(".sm-j-scroll");
+    const box = journeyScroller();
     if (!now || !box) return;
     // scroll the list only, never the page
     const top = now.getBoundingClientRect().top - box.getBoundingClientRect().top + box.scrollTop;
     const bottom = top + now.offsetHeight;
+    const view = upright() ? Math.max(0, sheet.visible() - head.offsetHeight) : box.clientHeight;
     const behavior: ScrollBehavior = reduced ? "auto" : "smooth";
     if (top < box.scrollTop) box.scrollTo({ top, behavior });
-    else if (bottom > box.scrollTop + box.clientHeight) box.scrollTo({ top: bottom - box.clientHeight, behavior });
+    else if (bottom > box.scrollTop + view) box.scrollTo({ top: bottom - view, behavior });
+  }
+  // the chain scrolls in its own box, or with the whole panel on a phone
+  function journeyScroller() {
+    return phone ? panel : panel.querySelector<HTMLElement>(".sm-j-scroll");
   }
   function showSummary() {
     if (!journey) return;
@@ -946,7 +1103,7 @@ export function mountSanadMap(
       ${years.length ? `<div class="sm-stat"><strong>${Math.min(...years)}–${Math.max(...years)}هـ</strong><span>سنوات الوفاة المعروفة</span></div>` : ""}
     </div>`;
     // bring the summary and the note under it into view; when both cannot fit, start at the summary
-    const scroller = panel.querySelector<HTMLElement>(".sm-j-scroll");
+    const scroller = journeyScroller();
     const sum = box.firstElementChild;
     if (scroller && sum) {
       const top = sum.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop;
@@ -994,8 +1151,10 @@ export function mountSanadMap(
     panel.classList.remove("sm-journey-panel");
     cityG.classed("sm-on-route", false);
     mode = "gen";
+    if (phone) sheet.measure();
     if (toGen) {
       showGen();
+      if (upright()) sheet.set("min");
       home(900);
     }
   }
@@ -1025,6 +1184,7 @@ export function mountSanadMap(
     if (w === lastW && Math.abs(h - lastH) < 150) return;
     lastW = w;
     lastH = h;
+    applyLayout();
     if (mode === "journey") frameRoute(0);
     else home(0);
     setGen(gen, false);
@@ -1039,8 +1199,16 @@ export function mountSanadMap(
   watcher.observe(stage);
 
   // ---------------------------------------------------------------- start
+  applyLayout();
+  if (upright()) sheet.set("min", false);
   home(0);
   setGen(1, false);
+  // the names are chosen by their real size, known once the font has arrived
+  document.fonts.load("700 13px Amiri").then(() => {
+    if (dead || !phone) return;
+    measureLabels();
+    layoutLabels();
+  });
   if (!reduced && opts.autoplay !== false) {
     autoplayTimer = window.setTimeout(() => {
       if (mode === "gen" && !playing) startPlay(11);
@@ -1055,6 +1223,8 @@ export function mountSanadMap(
     window.clearTimeout(flashTimer);
     window.clearTimeout(jTimer);
     if (rafId) cancelAnimationFrame(rafId);
+    if (zoomFrame) cancelAnimationFrame(zoomFrame);
+    sheet.destroy();
     resizer.disconnect();
     watcher.disconnect();
     document.removeEventListener("keydown", onKey);

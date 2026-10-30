@@ -1,17 +1,14 @@
+import PhoneBar from "@/components/PhoneBar";
 import SanadMap from "@/components/sanad-map/SanadMap";
+import { NAV } from "@/lib/nav";
 
-// The home page is the map alone: its masthead carries the wordmark and these links,
-// and the featured hadiths are its "follow a hadith" journeys (scripts/journeys.json).
-const NAV = [
-  { href: "/search/", label: "بحث" },
-  { href: "/books/", label: "الكتب" },
-  { href: "/game/", label: "رتّب السند" },
-  { href: "/about/", label: "حول" },
-];
-
+// The home page is the map alone: its masthead carries the wordmark and the section links
+// (on a phone, the top bar), and the featured hadiths are its "follow a hadith" journeys
+// (scripts/journeys.json).
 export default function Home() {
   return (
-    <main>
+    <main className="home-map">
+      <PhoneBar />
       <SanadMap nav={NAV} />
     </main>
   );

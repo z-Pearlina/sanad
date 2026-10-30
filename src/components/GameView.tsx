@@ -69,8 +69,8 @@ export default function GameView() {
         الأسفل.
       </p>
 
-      <label className="mt-4 flex items-center gap-2 text-sm">
-        <input type="checkbox" checked={hints} onChange={(e) => setHints(e.target.checked)} className="accent-[var(--nila)]" />
+      <label className="mt-4 flex items-center gap-2 text-sm phone:min-h-11">
+        <input type="checkbox" checked={hints} onChange={(e) => setHints(e.target.checked)} className="accent-[var(--nila)] phone:size-6" />
         أظهر الطبقة وسنة الوفاة تلميحاً
       </label>
 
@@ -106,7 +106,7 @@ export default function GameView() {
                 onClick={() => move(i, -1)}
                 disabled={i === 0 || solved}
                 aria-label={`انقل ${l.raw} إلى أعلى`}
-                className="rounded-sm border border-khatt px-2 leading-6 disabled:opacity-30"
+                className="rounded-sm border border-khatt px-2 leading-6 disabled:opacity-30 phone:size-11 phone:px-0"
               >
                 ↑
               </button>
@@ -115,7 +115,7 @@ export default function GameView() {
                 onClick={() => move(i, 1)}
                 disabled={i === order.length - 1 || solved}
                 aria-label={`انقل ${l.raw} إلى أسفل`}
-                className="rounded-sm border border-khatt px-2 leading-6 disabled:opacity-30"
+                className="rounded-sm border border-khatt px-2 leading-6 disabled:opacity-30 phone:size-11 phone:px-0"
               >
                 ↓
               </button>
@@ -130,7 +130,7 @@ export default function GameView() {
           <button
             type="button"
             onClick={() => setRound({ ...round, checked: true, tries: tries + 1 })}
-            className="rounded-sm bg-nila px-4 py-2 text-raqq"
+            className="rounded-sm bg-nila px-4 py-2 text-raqq phone:min-h-11"
           >
             تحقّق
           </button>
@@ -148,7 +148,7 @@ export default function GameView() {
             </Link>
           </p>
         )}
-        <button type="button" onClick={() => setRound(newRound(chains, chain))} className="rounded-sm border border-khatt px-4 py-2 text-sm">
+        <button type="button" onClick={() => setRound(newRound(chains, chain))} className="rounded-sm border border-khatt px-4 py-2 text-sm phone:min-h-11">
           سند آخر
         </button>
       </div>
