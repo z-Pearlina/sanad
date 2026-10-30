@@ -362,7 +362,7 @@ export default function TimeView() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="ابحث عن راوٍ لترى موضعه"
-          className="w-full rounded-sm border border-khatt bg-raqq px-3 py-2 text-base"
+          className="w-full rounded-sm border border-khatt bg-raqq px-3 py-2 text-base phone:min-h-11"
         />
         {results.length > 0 && (
           <ul className="absolute inset-x-0 top-full z-20 border border-t-0 border-khatt bg-raqq shadow-md">
